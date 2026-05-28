@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="MicrosoftIMELexManager.Pages.IHPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MicrosoftIMELexManager.Pages"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:MicrosoftIMELexManager.Models"
+    xmlns:viewmodels="using:MicrosoftIMELexManager.ViewModels"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <viewmodels:IHViewModel x:Key="ViewModel"/>
+    </Page.Resources>
+
+    <Grid Margin="{ThemeResource ContentDialogPadding}" DataContext="{StaticResource ViewModel}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+            <Button Name="DeleteButton" Click="Delete_Click">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xE74D;"/>
+                    <TextBlock Text="删除选中"/>
+                </StackPanel>
+            </Button>
+            <Button Name="ResetFreqButton" Click="ResetFreq_Click">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xE895;"/>
+                    <TextBlock Text="重置词频"/>
+                </StackPanel>
+            </Button>
+            <Button Name="ClearAllFreqButton" Foreground="Red" Click="ClearAllFreq_Click">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xE7E8;"/>
+                    <TextBlock Text="一键清零词频"/>
+                </StackPanel>
+            </Button>
+            <TextBlock Text="搜索：" VerticalAlignment="Center" Margin="16,0,4,0"/>
+            <TextBox Name="SearchBox" Width="200" Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="词语"/>
+        </StackPanel>
+
+        <!-- Data Grid -->
+        <ListView Grid.Row="1" Name="IHListView"
+                  ItemsSource="{x:Bind ViewModel.FilteredEntries, Mode=OneWay}"
+                  SelectionMode="Extended"
+                  HorizontalAlignment="Stretch">
+            <ListView.Header>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="150"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="词语" Margin="8,4"/>
+                    <TextBlock Grid.Column="1" Text="词频 (1-4)" Margin="8,4"/>
+                    <TextBlock Grid.Column="2" Text="时间戳" Margin="8,4"/>
+                </Grid>
+            </ListView.Header>
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="models:IHEntry">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="150"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="{Binding Word}" VerticalAlignment="Center" Margin="4" IsTextSelectionEnabled="True"/>
+                        <Slider Grid.Column="1" Value="{Binding Frequency, Mode=TwoWay}" Minimum="1" Maximum="4" TickFrequency="1" SnapsTo="Ticks" Margin="4" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Text="{Binding Timestamp}" VerticalAlignment="Center" Margin="4" Foreground="Gray"/>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</Page>
