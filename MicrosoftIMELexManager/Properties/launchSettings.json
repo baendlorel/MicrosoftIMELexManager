@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MicrosoftIMELexManager (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "MicrosoftIMELexManager (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
