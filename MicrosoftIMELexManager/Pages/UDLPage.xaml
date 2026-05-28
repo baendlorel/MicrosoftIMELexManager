@@ -14,7 +14,7 @@
         <viewmodels:UDLViewModel x:Key="ViewModel"/>
     </Page.Resources>
 
-    <Grid Margin="{ThemeResource ContentDialogPadding}" DataContext="{StaticResource ViewModel}">
+    <Grid Margin="{ThemeResource ContentDialogPadding}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
