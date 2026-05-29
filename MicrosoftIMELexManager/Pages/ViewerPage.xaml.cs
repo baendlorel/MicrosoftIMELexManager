@@ -37,8 +37,6 @@ public sealed partial class ViewerPage : Page
             var fileInfo = new FileInfo(filePath);
             Log($"文件信息: name={fileInfo.Name}, length={fileInfo.Length}, instance={GetHashCode()}");
 
-            FileNameText.Text = fileInfo.Name;
-            FileInfoText.Text = $"路径: {fileInfo.DirectoryName}";
             FileSizeText.Text = FormatFileSize(fileInfo.Length);
             ModifiedTimeText.Text = fileInfo.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss");
 

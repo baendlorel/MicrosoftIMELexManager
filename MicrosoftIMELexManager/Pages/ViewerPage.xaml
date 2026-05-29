@@ -11,25 +11,12 @@
     <Grid Margin="{ThemeResource ContentDialogPadding}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- File Info Header -->
-        <Grid Grid.Row="0" Background="{ThemeResource LayerFillColorDefaultBrush}" Padding="16,12" CornerRadius="8" Margin="0,0,0,12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <FontIcon Grid.Column="0" Glyph="&#xE8E5;" FontSize="32" Margin="0,0,16,0" Foreground="{ThemeResource AccentFillColorDefaultBrush}"/>
-            <StackPanel Grid.Column="1" Spacing="4">
-                <TextBlock Name="FileNameText" Text="未加载文件" FontWeight="SemiBold" FontSize="16"/>
-                <TextBlock Name="FileInfoText" Text="点击打开单个文件以查看词库文件详情" Foreground="Gray"/>
-            </StackPanel>
-        </Grid>
 
         <!-- Statistics -->
-        <Grid Grid.Row="1" Padding="16,8">
+        <Grid Grid.Row="0" Padding="16,8">
             <StackPanel Orientation="Horizontal" Spacing="24" HorizontalAlignment="Center">
                 <StackPanel Spacing="4">
                     <TextBlock Text="文件类型" Foreground="Gray" FontSize="12"/>
@@ -51,7 +38,7 @@
         </Grid>
 
         <!-- Content List -->
-        <ListView Grid.Row="2" Name="ContentView"
+        <ListView Grid.Row="1" Name="ContentView"
                   SelectionMode="None"
                   HorizontalAlignment="Stretch"
                   Margin="0,12,0,0">
@@ -63,7 +50,7 @@
         </ListView>
 
         <!-- Loading Overlay -->
-        <Grid Grid.Row="2" Name="LoadingOverlay" Visibility="Collapsed" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Opacity="0.85">
+        <Grid Grid.Row="1" Name="LoadingOverlay" Visibility="Collapsed" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Opacity="0.85">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
                 <ProgressRing IsActive="True" Width="48" Height="48" HorizontalAlignment="Center"/>
                 <TextBlock Name="LoadingText" Text="正在加载文件..." HorizontalAlignment="Center" FontSize="14"/>
@@ -71,7 +58,7 @@
         </Grid>
 
         <!-- Error State -->
-        <Grid Grid.Row="2" Name="ErrorState" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Grid Grid.Row="1" Name="ErrorState" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center">
             <StackPanel Spacing="12" HorizontalAlignment="Center">
                 <FontIcon Glyph="&#xE893;" FontSize="64" Foreground="Red" Opacity="0.7" HorizontalAlignment="Center"/>
                 <TextBlock Name="ErrorTitleText" Text="加载失败" Foreground="Red" FontWeight="SemiBold" FontSize="18" HorizontalAlignment="Center"/>
@@ -80,7 +67,7 @@
         </Grid>
 
         <!-- Empty State -->
-        <Grid Grid.Row="2" Name="EmptyState" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
+        <Grid Grid.Row="1" Name="EmptyState" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
             <StackPanel Spacing="12" HorizontalAlignment="Center">
                 <FontIcon Glyph="&#xE8E5;" FontSize="64" Foreground="Gray" Opacity="0.5"/>
                 <TextBlock Text="未加载文件" Foreground="Gray" HorizontalAlignment="Center"/>

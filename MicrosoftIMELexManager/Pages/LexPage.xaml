@@ -18,32 +18,11 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0"
-                Margin="0,0,0,12"
-                Padding="18,16"
-                CornerRadius="16"
-                BorderThickness="1"
-                Background="{ThemeResource LayerFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
-            <StackPanel Spacing="4">
-                <TextBlock Text="自定义短语" Style="{ThemeResource SubtitleTextBlockStyle}"/>
-                <TextBlock Text="管理拼音、词语和候选位置，适合整理常用短语导入导出。"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                           TextWrapping="WrapWholeWords"/>
-            </StackPanel>
-        </Border>
-
-        <Border Grid.Row="1"
-                Margin="0,0,0,12"
-                Padding="14"
-                CornerRadius="14"
-                BorderThickness="1"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+            Margin="0,0,0,12">
             <StackPanel Orientation="Horizontal" Spacing="8">
                 <Button Name="AddNewButton" Click="AddNew_Click">
                     <StackPanel Orientation="Horizontal" Spacing="8">
@@ -74,7 +53,7 @@
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="2"
+        <Border Grid.Row="1"
                 Padding="0"
                 CornerRadius="16"
                 BorderThickness="1"
