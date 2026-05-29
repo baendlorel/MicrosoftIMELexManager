@@ -14,10 +14,28 @@ namespace MicrosoftIMELexManager;
 
 public sealed partial class MainWindow : Window
 {
+    private const string LexLibraryKey = "Lex";
+    private const string IHLibraryKey = "IH";
+    private const string UDLLibraryKey = "UDL";
+
     private LexPage? _lexPage;
     private IHPage? _ihPage;
     private UDLPage? _udlPage;
     private ViewerPage? _viewerPage;
+    private string? _currentFolderPath;
+    private readonly List<LibraryItem> _libraryItems = new();
+
+    private FrameworkElement RootElement => (FrameworkElement)Content;
+    private ListBox LibraryListBoxControl => (ListBox)RootElement.FindName("LibraryListBox");
+    private TextBlock LibraryListHintTextControl => (TextBlock)RootElement.FindName("LibraryListHintText");
+    private Border EmptyContentStateControl => (Border)RootElement.FindName("EmptyContentState");
+
+    private sealed class LibraryItem
+    {
+        public required string Key { get; init; }
+        public required string DisplayName { get; init; }
+        public required string FilePath { get; init; }
+    }
 
     public MainWindow()
     {
@@ -36,6 +54,8 @@ public sealed partial class MainWindow : Window
         _viewerPage = NavigateFrame<ViewerPage>(ViewerFrame);
 
         Log($"页面初始化完成。Lex={_lexPage.GetHashCode()}, IH={_ihPage.GetHashCode()}, UDL={_udlPage.GetHashCode()}, Viewer={_viewerPage.GetHashCode()}");
+
+        ShowEmptyState();
 
         _ = TryAutoLoadAsync();
     }
@@ -64,27 +84,7 @@ public sealed partial class MainWindow : Window
 
             if (Directory.Exists(imePath))
             {
-                var lexFile = Path.Combine(imePath, "ChsPinyinEUDPv1.lex");
-                var ihFile = Path.Combine(imePath, "ChsPinyinIH.dat");
-                var udlFile = Path.Combine(imePath, "ChsPinyinUDL.dat");
-
-                if (File.Exists(lexFile) && _lexPage != null)
-                {
-                    Log($"自动加载 lex: {lexFile}");
-                    await _lexPage.ViewModel.LoadAsync(lexFile);
-                }
-                if (File.Exists(ihFile) && _ihPage != null)
-                {
-                    Log($"自动加载 ih: {ihFile}");
-                    await _ihPage.ViewModel.LoadAsync(ihFile);
-                }
-                if (File.Exists(udlFile) && _udlPage != null)
-                {
-                    Log($"自动加载 udl: {udlFile}");
-                    await _udlPage.ViewModel.LoadAsync(udlFile);
-                }
-
-                UpdateStatus(imePath);
+                await LoadFolderAsync(imePath);
             }
         }
         catch (Exception ex)
@@ -93,75 +93,112 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private async void OpenFile_Click(object sender, RoutedEventArgs e)
+    private async void OpenFolder_Click(object sender, RoutedEventArgs e)
     {
-        Log("用户点击打开单个文件。");
-        var filePicker = new Windows.Storage.Pickers.FileOpenPicker();
+        Log("用户点击打开文件夹。");
+        var folderPicker = new FolderPicker();
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
-        WinRT.Interop.InitializeWithWindow.Initialize(filePicker, hwnd);
+        WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hwnd);
 
-        // 设置视图和文件类型
-        filePicker.ViewMode = Windows.Storage.Pickers.PickerViewMode.List;
-        filePicker.FileTypeFilter.Add(".lex");
-        filePicker.FileTypeFilter.Add(".dat");
+        folderPicker.FileTypeFilter.Add("*");
 
-        var file = await filePicker.PickSingleFileAsync();
-        Log(file == null ? "文件选择已取消。" : $"已选择文件: name={file.Name}, path={file.Path}");
-        if (file != null)
+        var folder = await folderPicker.PickSingleFolderAsync();
+        Log(folder == null ? "文件夹选择已取消。" : $"已选择文件夹: name={folder.Name}, path={folder.Path}");
+        if (folder != null)
         {
-            try
-            {
-                // 获取文件路径
-                var filePath = file.Path;
-                Log($"准备打开文件路径: {filePath}");
-
-                if (string.IsNullOrEmpty(filePath))
-                {
-                    Log("文件路径为空，终止加载。");
-                    await ShowErrorDialog("文件路径错误", "无法获取文件路径，请重新选择文件。");
-                    return;
-                }
-
-                // 切换到查看标签页并加载文件
-                MainTabView.SelectedIndex = 3; // ViewerTab
-                Log($"已切换到查看标签页。ViewerPage实例: {_viewerPage?.GetHashCode().ToString() ?? "null"}");
-                if (_viewerPage != null)
-                {
-                    Log("开始调用 ViewerPage.LoadFileAsync。");
-                    await _viewerPage.LoadFileAsync(filePath);
-                    Log("ViewerPage.LoadFileAsync 调用完成。");
-                }
-                UpdateStatus($"查看文件: {file.Name}");
-            }
-            catch (Exception ex)
-            {
-                Log($"打开文件失败: {ex}");
-                await ShowErrorDialog("打开文件失败", $"无法打开文件: {ex.Message}\n\n文件: {file.Name}\n路径: {file.Path}");
-            }
+            await LoadFolderAsync(folder.Path);
         }
     }
 
-    private async Task LoadFromPathAsync(string path)
+    private async Task LoadFolderAsync(string path)
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
+            {
+                await ShowErrorDialog("加载失败", "所选文件夹不存在。");
+                return;
+            }
+
+            _currentFolderPath = path;
+
             var lexFile = Path.Combine(path, "ChsPinyinEUDPv1.lex");
             var ihFile = Path.Combine(path, "ChsPinyinIH.dat");
             var udlFile = Path.Combine(path, "ChsPinyinUDL.dat");
+            var items = new List<LibraryItem>();
 
             if (File.Exists(lexFile) && _lexPage != null)
+            {
                 await _lexPage.ViewModel.LoadAsync(lexFile);
+                items.Add(new LibraryItem { Key = LexLibraryKey, DisplayName = "自定义短语", FilePath = lexFile });
+            }
             if (File.Exists(ihFile) && _ihPage != null)
+            {
                 await _ihPage.ViewModel.LoadAsync(ihFile);
+                items.Add(new LibraryItem { Key = IHLibraryKey, DisplayName = "输入历史", FilePath = ihFile });
+            }
             if (File.Exists(udlFile) && _udlPage != null)
+            {
                 await _udlPage.ViewModel.LoadAsync(udlFile);
+                items.Add(new LibraryItem { Key = UDLLibraryKey, DisplayName = "自学习词汇", FilePath = udlFile });
+            }
+
+            _libraryItems.Clear();
+            _libraryItems.AddRange(items);
+            LibraryListBoxControl.ItemsSource = null;
+            LibraryListBoxControl.ItemsSource = _libraryItems;
 
             UpdateStatus(path);
+
+            if (_libraryItems.Count > 0)
+            {
+                LibraryListHintTextControl.Text = "点击左侧词库名称即可切换查看和编辑。";
+                LibraryListBoxControl.SelectedIndex = 0;
+            }
+            else
+            {
+                LibraryListHintTextControl.Text = "该文件夹下未找到可加载的词库文件。";
+                LibraryListBoxControl.SelectedItem = null;
+                ShowEmptyState();
+                await ShowErrorDialog("未找到词库", "该文件夹下未找到可加载的词库文件。\n\n目前支持：ChsPinyinEUDPv1.lex、ChsPinyinIH.dat、ChsPinyinUDL.dat");
+            }
         }
         catch (Exception ex)
         {
+            Log($"加载文件夹失败: {ex}");
             await ShowErrorDialog("加载失败", ex.Message);
         }
+    }
+
+    private void LibraryListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (LibraryListBoxControl.SelectedItem is LibraryItem item)
+        {
+            ShowLibrary(item.Key);
+        }
+    }
+
+    private void ShowLibrary(string key)
+    {
+        EmptyContentStateControl.Visibility = Visibility.Collapsed;
+        LexFrame.Visibility = key == LexLibraryKey ? Visibility.Visible : Visibility.Collapsed;
+        IHFrame.Visibility = key == IHLibraryKey ? Visibility.Visible : Visibility.Collapsed;
+        UDLFrame.Visibility = key == UDLLibraryKey ? Visibility.Visible : Visibility.Collapsed;
+        ViewerFrame.Visibility = Visibility.Collapsed;
+    }
+
+    private void ShowEmptyState()
+    {
+        EmptyContentStateControl.Visibility = Visibility.Visible;
+        LexFrame.Visibility = Visibility.Collapsed;
+        IHFrame.Visibility = Visibility.Collapsed;
+        UDLFrame.Visibility = Visibility.Collapsed;
+        ViewerFrame.Visibility = Visibility.Collapsed;
+    }
+
+    private bool HasLibrary(string key)
+    {
+        return _libraryItems.Any(item => item.Key == key);
     }
 
     private async void Save_Click(object sender, RoutedEventArgs e)
@@ -184,31 +221,34 @@ public sealed partial class MainWindow : Window
                 return;
         }
 
-        var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var imePath = Path.Combine(appDataPath, @"Microsoft\InputMethod\Chs");
+        if (string.IsNullOrWhiteSpace(_currentFolderPath) || !Directory.Exists(_currentFolderPath))
+        {
+            await ShowErrorDialog("保存失败", "请先打开一个包含词库文件的文件夹。");
+            return;
+        }
 
         try
         {
             var createdBackupFiles = new List<string>();
             var existingBackupFiles = new List<string>();
 
-            if (_lexPage != null && _lexPage.ViewModel.IsModified)
+            if (_lexPage != null && _lexPage.ViewModel.IsModified && HasLibrary(LexLibraryKey))
             {
-                var lexFile = Path.Combine(imePath, "ChsPinyinEUDPv1.lex");
+                var lexFile = Path.Combine(_currentFolderPath, "ChsPinyinEUDPv1.lex");
                 TrackBackupState(lexFile, createdBackupFiles, existingBackupFiles);
                 await _lexPage.ViewModel.SaveAsync(lexFile);
             }
 
-            if (_ihPage != null && _ihPage.ViewModel.IsModified)
+            if (_ihPage != null && _ihPage.ViewModel.IsModified && HasLibrary(IHLibraryKey))
             {
-                var ihFile = Path.Combine(imePath, "ChsPinyinIH.dat");
+                var ihFile = Path.Combine(_currentFolderPath, "ChsPinyinIH.dat");
                 TrackBackupState(ihFile, createdBackupFiles, existingBackupFiles);
                 await _ihPage.ViewModel.SaveAsync(ihFile);
             }
 
-            if (_udlPage != null && _udlPage.ViewModel.IsModified)
+            if (_udlPage != null && _udlPage.ViewModel.IsModified && HasLibrary(UDLLibraryKey))
             {
-                var udlFile = Path.Combine(imePath, "ChsPinyinUDL.dat");
+                var udlFile = Path.Combine(_currentFolderPath, "ChsPinyinUDL.dat");
                 TrackBackupState(udlFile, createdBackupFiles, existingBackupFiles);
                 await _udlPage.ViewModel.SaveAsync(udlFile);
             }
@@ -287,8 +327,15 @@ public sealed partial class MainWindow : Window
         {
             var targetPath = BackupService.GetRestoreTargetPath(file.Path);
             BackupService.RestoreFromBackup(file.Path, targetPath);
-            await ReloadRestoredFileAsync(targetPath);
-            UpdateStatus($"已恢复文件: {Path.GetFileName(targetPath)}");
+            if (!string.IsNullOrWhiteSpace(_currentFolderPath) && string.Equals(Path.GetDirectoryName(targetPath), _currentFolderPath, StringComparison.OrdinalIgnoreCase))
+            {
+                await LoadFolderAsync(_currentFolderPath);
+            }
+            else
+            {
+                await ReloadRestoredFileAsync(targetPath);
+                UpdateStatus($"已恢复文件: {Path.GetFileName(targetPath)}");
+            }
 
             var dialog = new ContentDialog
             {
@@ -339,9 +386,9 @@ public sealed partial class MainWindow : Window
     private void UpdateStatus(string path)
     {
         CurrentFileText.Text = $"当前路径: {path}";
-        var totalEntries = (_lexPage?.ViewModel.AllEntries.Count ?? 0) +
-                           (_ihPage?.ViewModel.AllEntries.Count ?? 0) +
-                           (_udlPage?.ViewModel.AllEntries.Count ?? 0);
+        var totalEntries = (HasLibrary(LexLibraryKey) ? _lexPage?.ViewModel.AllEntries.Count ?? 0 : 0) +
+                           (HasLibrary(IHLibraryKey) ? _ihPage?.ViewModel.AllEntries.Count ?? 0 : 0) +
+                           (HasLibrary(UDLLibraryKey) ? _udlPage?.ViewModel.AllEntries.Count ?? 0 : 0);
         EntryCountText.Text = $"总条目数: {totalEntries}";
         Log($"状态栏已更新: path={CurrentFileText.Text}, entries={EntryCountText.Text}");
     }

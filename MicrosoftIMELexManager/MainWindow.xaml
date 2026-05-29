@@ -24,10 +24,10 @@
         <!-- Top Toolbar -->
         <Grid Grid.Row="0" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" Padding="16,12">
             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Left">
-                <Button Name="OpenFileButton" Click="OpenFile_Click">
+                <Button Name="OpenFolderButton" Click="OpenFolder_Click">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE8E5;"/>
-                        <TextBlock Text="打开文件（.dat/.lex）"/>
+                        <TextBlock Text="打开文件夹"/>
                     </StackPanel>
                 </Button>
                 <Button Name="SaveButton" Click="Save_Click">
@@ -45,21 +45,34 @@
             </StackPanel>
         </Grid>
 
-        <!-- Main Content - TabView -->
-        <TabView Grid.Row="1" Name="MainTabView" Padding="12,8">
-            <TabViewItem Name="LexTab" Header="自定义短语" IsClosable="False">
-                <Frame Name="LexFrame"/>
-            </TabViewItem>
-            <TabViewItem Name="IHTab" Header="输入历史" IsClosable="False">
-                <Frame Name="IHFrame"/>
-            </TabViewItem>
-            <TabViewItem Name="UDLTab" Header="自学习词汇" IsClosable="False">
-                <Frame Name="UDLFrame"/>
-            </TabViewItem>
-            <TabViewItem Name="ViewerTab" Header="文件查看" IsClosable="False">
-                <Frame Name="ViewerFrame"/>
-            </TabViewItem>
-        </TabView>
+        <!-- Main Content -->
+        <Grid Grid.Row="1" Padding="12,8" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="240"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="8">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="词库列表" FontSize="18" FontWeight="SemiBold" Margin="8,4,8,0"/>
+                    <TextBlock x:Name="LibraryListHintText" Text="打开文件夹后，这里会显示可加载的词库。" TextWrapping="WrapWholeWords" Foreground="Gray" Margin="8,0,8,8"/>
+                    <ListBox x:Name="LibraryListBox" SelectionChanged="LibraryListBox_SelectionChanged" DisplayMemberPath="DisplayName"/>
+                </StackPanel>
+            </Border>
+
+            <Grid Grid.Column="1">
+                <Frame Name="LexFrame" Visibility="Collapsed"/>
+                <Frame Name="IHFrame" Visibility="Collapsed"/>
+                <Frame Name="UDLFrame" Visibility="Collapsed"/>
+                <Frame Name="ViewerFrame" Visibility="Collapsed"/>
+                <Border x:Name="EmptyContentState" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="24">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
+                        <TextBlock Text="请先打开文件夹" FontSize="24" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                        <TextBlock Text="选择包含词库文件的文件夹后，可在左侧切换不同词库。" Foreground="Gray" TextWrapping="WrapWholeWords" HorizontalAlignment="Center" TextAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
 
         <!-- Bottom Status Bar -->
         <Grid Grid.Row="2" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" Padding="16,8">
