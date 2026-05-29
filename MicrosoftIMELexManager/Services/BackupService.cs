@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Diagnostics;
-using System.Linq;
 
 namespace MicrosoftIMELexManager.Services;
 
@@ -11,7 +10,7 @@ namespace MicrosoftIMELexManager.Services;
 public static class BackupService
 {
     /// <summary>
-    /// 创建文件备份，使用时间戳命名
+    /// 创建文件备份，命名为 原文件名+源文件后缀+.bak
     /// </summary>
     /// <param name="sourcePath">源文件路径</param>
     /// <param name="backupDirectory">备份目录（默认与源文件同目录）</param>
@@ -27,13 +26,13 @@ public static class BackupService
         if (!Directory.Exists(backupDir))
             Directory.CreateDirectory(backupDir);
 
-        // 生成时间戳文件名: ChsPinyinEUDPv1.lex.20260528_143022.bak
-        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        var backupFileName = $"{sourceFile.Name}.{timestamp}.bak";
+        var backupFileName = $"{sourceFile.Name}.bak";
         var backupPath = Path.Combine(backupDir!, backupFileName);
 
-        // 复制文件
-        File.Copy(sourcePath, backupPath, overwrite: true);
+        if (!File.Exists(backupPath))
+        {
+            File.Copy(sourcePath, backupPath, overwrite: false);
+        }
 
         return backupPath;
     }
@@ -57,50 +56,6 @@ public static class BackupService
             // 备份失败不应阻止写入操作
             return null;
         }
-    }
-
-    /// <summary>
-    /// 清理旧备份，保留指定数量的最新备份
-    /// </summary>
-    /// <param name="directory">备份目录</param>
-    /// <param name="pattern">文件匹配模式（如 "ChsPinyin*.lex.*.bak"）</param>
-    /// <param name="keepCount">保留数量</param>
-    public static void CleanOldBackups(string directory, string pattern, int keepCount = 5)
-    {
-        if (!Directory.Exists(directory))
-            return;
-
-        var backupFiles = Directory.GetFiles(directory, pattern)
-            .Select(f => new FileInfo(f))
-            .OrderByDescending(f => f.LastWriteTime)
-            .ToList();
-
-        // 删除超过保留数量的旧备份
-        for (int i = keepCount; i < backupFiles.Count; i++)
-        {
-            try
-            {
-                backupFiles[i].Delete();
-            }
-            catch
-            {
-                // 忽略删除失败
-            }
-        }
-    }
-
-    /// <summary>
-    /// 清理所有旧备份
-    /// </summary>
-    /// <param name="directory">词库目录</param>
-    /// <param name="keepCount">每个文件类型保留的备份数量</param>
-    public static void CleanAllOldBackups(string directory, int keepCount = 5)
-    {
-        if (!Directory.Exists(directory))
-            return;
-
-        CleanOldBackups(directory, "ChsPinyin*.lex.*.bak", keepCount);
-        CleanOldBackups(directory, "ChsPinyin*.dat.*.bak", keepCount);
     }
 
     /// <summary>
@@ -150,15 +105,22 @@ public static class BackupService
         if (!File.Exists(backupPath))
             throw new FileNotFoundException("备份文件不存在", backupPath);
 
-        var target = targetPath ?? backupPath.Replace(".bak", "");
-
-        // 移除时间戳部分
-        var match = System.Text.RegularExpressions.Regex.Match(target, @"\.\d{8}_\d{6}\.bak$");
-        if (match.Success)
-        {
-            target = target.Substring(0, match.Index);
-        }
+        var target = targetPath ?? GetRestoreTargetPath(backupPath);
 
         File.Copy(backupPath, target, overwrite: true);
+    }
+
+    /// <summary>
+    /// 获取备份文件对应的恢复目标路径
+    /// </summary>
+    public static string GetRestoreTargetPath(string backupPath)
+    {
+        if (string.IsNullOrWhiteSpace(backupPath))
+            throw new ArgumentException("备份文件路径不能为空", nameof(backupPath));
+
+        if (!backupPath.EndsWith(".bak", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("仅支持 .bak 备份文件", nameof(backupPath));
+
+        return backupPath[..^4];
     }
 }

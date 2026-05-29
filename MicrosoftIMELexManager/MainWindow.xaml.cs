@@ -93,21 +93,6 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private async void OpenFolder_Click(object sender, RoutedEventArgs e)
-    {
-        var folderPicker = new FolderPicker();
-        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
-        WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hwnd);
-
-        folderPicker.SuggestedStartLocation = PickerLocationId.ComputerFolder;
-        var folder = await folderPicker.PickSingleFolderAsync();
-
-        if (folder != null)
-        {
-            await LoadFromPathAsync(folder.Path);
-        }
-    }
-
     private async void OpenFile_Click(object sender, RoutedEventArgs e)
     {
         Log("用户点击打开单个文件。");
@@ -119,7 +104,6 @@ public sealed partial class MainWindow : Window
         filePicker.ViewMode = Windows.Storage.Pickers.PickerViewMode.List;
         filePicker.FileTypeFilter.Add(".lex");
         filePicker.FileTypeFilter.Add(".dat");
-        filePicker.FileTypeFilter.Add("*"); // 允许所有文件
 
         var file = await filePicker.PickSingleFileAsync();
         Log(file == null ? "文件选择已取消。" : $"已选择文件: name={file.Name}, path={file.Path}");
@@ -134,7 +118,7 @@ public sealed partial class MainWindow : Window
                 if (string.IsNullOrEmpty(filePath))
                 {
                     Log("文件路径为空，终止加载。");
-                    await ShowErrorDialog("文件路径错误", "无法获取文件路径，请尝试使用\"打开文件夹\"功能");
+                    await ShowErrorDialog("文件路径错误", "无法获取文件路径，请重新选择文件。");
                     return;
                 }
 
@@ -205,37 +189,39 @@ public sealed partial class MainWindow : Window
 
         try
         {
-            // 创建备份
-            var backupFiles = new List<string>();
+            var createdBackupFiles = new List<string>();
+            var existingBackupFiles = new List<string>();
 
             if (_lexPage != null && _lexPage.ViewModel.IsModified)
             {
                 var lexFile = Path.Combine(imePath, "ChsPinyinEUDPv1.lex");
-                var backup = BackupService.CreateBackupBeforeWrite(lexFile);
-                if (backup != null) backupFiles.Add(backup);
+                TrackBackupState(lexFile, createdBackupFiles, existingBackupFiles);
                 await _lexPage.ViewModel.SaveAsync(lexFile);
             }
 
             if (_ihPage != null && _ihPage.ViewModel.IsModified)
             {
                 var ihFile = Path.Combine(imePath, "ChsPinyinIH.dat");
-                var backup = BackupService.CreateBackupBeforeWrite(ihFile);
-                if (backup != null) backupFiles.Add(backup);
+                TrackBackupState(ihFile, createdBackupFiles, existingBackupFiles);
                 await _ihPage.ViewModel.SaveAsync(ihFile);
             }
 
             if (_udlPage != null && _udlPage.ViewModel.IsModified)
             {
                 var udlFile = Path.Combine(imePath, "ChsPinyinUDL.dat");
-                var backup = BackupService.CreateBackupBeforeWrite(udlFile);
-                if (backup != null) backupFiles.Add(backup);
+                TrackBackupState(udlFile, createdBackupFiles, existingBackupFiles);
                 await _udlPage.ViewModel.SaveAsync(udlFile);
             }
 
             var message = "所有修改已保存";
-            if (backupFiles.Count > 0)
+            if (createdBackupFiles.Count > 0)
             {
-                message += $"\n\n已创建备份文件:\n{string.Join("\n", backupFiles.Select(Path.GetFileName))}";
+                message += $"\n\n已创建备份文件:\n{string.Join("\n", createdBackupFiles.Select(Path.GetFileName))}";
+            }
+
+            if (existingBackupFiles.Count > 0)
+            {
+                message += $"\n\n以下备份已存在，未重复创建:\n{string.Join("\n", existingBackupFiles.Select(Path.GetFileName).Distinct())}";
             }
 
             var dialog = new ContentDialog
@@ -253,37 +239,61 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private async void Backup_Click(object sender, RoutedEventArgs e)
+    private void TrackBackupState(string sourcePath, List<string> createdBackupFiles, List<string> existingBackupFiles)
     {
-        var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var imePath = Path.Combine(appDataPath, @"Microsoft\InputMethod\Chs");
-
-        if (!Directory.Exists(imePath))
+        if (!File.Exists(sourcePath))
         {
-            await ShowErrorDialog("错误", "词库目录不存在");
+            return;
+        }
+
+        var backupPath = $"{sourcePath}.bak";
+        var backupAlreadyExists = File.Exists(backupPath);
+        var backup = BackupService.CreateBackupBeforeWrite(sourcePath);
+
+        if (backupAlreadyExists)
+        {
+            existingBackupFiles.Add(backupPath);
+        }
+        else if (backup != null)
+        {
+            createdBackupFiles.Add(backup);
+        }
+    }
+
+    private async void Restore_Click(object sender, RoutedEventArgs e)
+    {
+        Log("用户点击恢复备份文件。");
+        var filePicker = new FileOpenPicker();
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        WinRT.Interop.InitializeWithWindow.Initialize(filePicker, hwnd);
+
+        filePicker.ViewMode = PickerViewMode.List;
+        filePicker.FileTypeFilter.Add(".bak");
+
+        var file = await filePicker.PickSingleFileAsync();
+        Log(file == null ? "恢复文件选择已取消。" : $"已选择恢复文件: name={file.Name}, path={file.Path}");
+        if (file == null)
+        {
+            return;
+        }
+
+        if (!IsSupportedBackupFile(file.Path))
+        {
+            await ShowErrorDialog("恢复失败", "请选择以 .dat.bak 或 .lex.bak 结尾的备份文件。");
             return;
         }
 
         try
         {
-            var backupFiles = new List<string>();
-
-            // 备份所有词库文件
-            var lexFile = Path.Combine(imePath, "ChsPinyinEUDPv1.lex");
-            var ihFile = Path.Combine(imePath, "ChsPinyinIH.dat");
-            var udlFile = Path.Combine(imePath, "ChsPinyinUDL.dat");
-
-            if (File.Exists(lexFile))
-                backupFiles.Add(BackupService.CreateBackup(lexFile));
-            if (File.Exists(ihFile))
-                backupFiles.Add(BackupService.CreateBackup(ihFile));
-            if (File.Exists(udlFile))
-                backupFiles.Add(BackupService.CreateBackup(udlFile));
+            var targetPath = BackupService.GetRestoreTargetPath(file.Path);
+            BackupService.RestoreFromBackup(file.Path, targetPath);
+            await ReloadRestoredFileAsync(targetPath);
+            UpdateStatus($"已恢复文件: {Path.GetFileName(targetPath)}");
 
             var dialog = new ContentDialog
             {
-                Title = "备份完成",
-                Content = $"已创建 {backupFiles.Count} 个备份文件:\n\n{string.Join("\n", backupFiles.Select(Path.GetFileName))}",
+                Title = "恢复成功",
+                Content = $"已将备份文件覆盖恢复到:\n{targetPath}",
                 CloseButtonText = "确定",
                 XamlRoot = Content.XamlRoot
             };
@@ -291,57 +301,38 @@ public sealed partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            await ShowErrorDialog("备份失败", ex.Message);
+            await ShowErrorDialog("恢复失败", ex.Message);
         }
     }
 
-    private async void CleanBackups_Click(object sender, RoutedEventArgs e)
+    private static bool IsSupportedBackupFile(string path)
     {
-        var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var imePath = Path.Combine(appDataPath, @"Microsoft\InputMethod\Chs");
+        return path.EndsWith(".dat.bak", StringComparison.OrdinalIgnoreCase) ||
+               path.EndsWith(".lex.bak", StringComparison.OrdinalIgnoreCase);
+    }
 
-        if (!Directory.Exists(imePath))
+    private async Task ReloadRestoredFileAsync(string targetPath)
+    {
+        var fileName = Path.GetFileName(targetPath);
+
+        if (_viewerPage != null)
         {
-            await ShowErrorDialog("错误", "词库目录不存在");
-            return;
+            await _viewerPage.LoadFileAsync(targetPath);
         }
 
-        // 先显示当前备份文件数量
-        var allBackups = BackupService.GetBackupFiles(imePath, "*.bak");
-
-        var confirmDialog = new ContentDialog
+        if (_lexPage != null && string.Equals(fileName, "ChsPinyinEUDPv1.lex", StringComparison.OrdinalIgnoreCase))
         {
-            Title = "清理旧备份",
-            Content = $"当前共有 {allBackups.Length} 个备份文件。\n\n将保留最新的 5 个备份，删除其他旧备份。\n\n是否继续？",
-            PrimaryButtonText = "清理",
-            CloseButtonText = "取消",
-            DefaultButton = ContentDialogButton.Close,
-            XamlRoot = Content.XamlRoot
-        };
+            await _lexPage.ViewModel.LoadAsync(targetPath);
+        }
 
-        var result = await confirmDialog.ShowAsync();
-        if (result == ContentDialogResult.Primary)
+        if (_ihPage != null && string.Equals(fileName, "ChsPinyinIH.dat", StringComparison.OrdinalIgnoreCase))
         {
-            try
-            {
-                BackupService.CleanAllOldBackups(imePath, keepCount: 5);
+            await _ihPage.ViewModel.LoadAsync(targetPath);
+        }
 
-                var remainingBackups = BackupService.GetBackupFiles(imePath, "*.bak");
-                var deletedCount = allBackups.Length - remainingBackups.Length;
-
-                var dialog = new ContentDialog
-                {
-                    Title = "清理完成",
-                    Content = $"已删除 {deletedCount} 个旧备份文件。\n\n当前保留 {remainingBackups.Length} 个备份文件。",
-                    CloseButtonText = "确定",
-                    XamlRoot = Content.XamlRoot
-                };
-                await dialog.ShowAsync();
-            }
-            catch (Exception ex)
-            {
-                await ShowErrorDialog("清理失败", ex.Message);
-            }
+        if (_udlPage != null && string.Equals(fileName, "ChsPinyinUDL.dat", StringComparison.OrdinalIgnoreCase))
+        {
+            await _udlPage.ViewModel.LoadAsync(targetPath);
         }
     }
 
