@@ -15,136 +15,127 @@
     </Window.SystemBackdrop>
 
     <Grid Background="Transparent">
+
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0"
-                Margin="16,16,16,10"
-                Padding="20,18"
-                CornerRadius="16"
-                BorderThickness="1"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+            Margin="36,28,36,10"
+            BorderThickness="0">
             <Grid ColumnSpacing="16" RowSpacing="10">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Spacing="4">
                     <TextBlock Text="微软拼音词库管理器"
-                               Style="{ThemeResource TitleTextBlockStyle}"/>
-                    <TextBlock Text="查看、导出并整理自定义短语、输入历史和自学习词汇。"
+                        Style="{ThemeResource TitleTextBlockStyle}" />
+                    <!--<TextBlock
+                    Text="查看、导出并整理自定义短语、输入历史和自学习词汇。"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                               TextWrapping="WrapWholeWords"/>
+                               TextWrapping="WrapWholeWords"/>-->
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Button Name="OpenFolderButton" Click="OpenFolder_Click" Style="{StaticResource AccentButtonStyle}">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                    VerticalAlignment="Center">
+                    <Button Name="OpenFolderButton" Click="OpenFolder_Click"
+                        Style="{StaticResource AccentButtonStyle}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE8E5;"/>
-                            <TextBlock Text="打开文件夹"/>
+                            <FontIcon Glyph="&#xE8E5;" />
+                            <TextBlock Text="打开文件夹" />
                         </StackPanel>
                     </Button>
                     <Button Name="SaveButton" Click="Save_Click">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE74E;"/>
-                            <TextBlock Text="保存"/>
+                            <FontIcon Glyph="&#xE74E;" />
+                            <TextBlock Text="保存" />
                         </StackPanel>
                     </Button>
                     <Button Name="RestoreButton" Click="Restore_Click">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE777;"/>
-                            <TextBlock Text="恢复"/>
+                            <FontIcon Glyph="&#xE777;" />
+                            <TextBlock Text="恢复" />
                         </StackPanel>
                     </Button>
                 </StackPanel>
             </Grid>
         </Border>
 
+        <!-- Status Bar -->
+        <Border Grid.Row="1"
+            Margin="36,10,36,20"
+            BorderThickness="0">
+            <StackPanel Orientation="Horizontal" Spacing="20">
+                <TextBlock Name="CurrentFileText" Text="未打开文件" VerticalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <TextBlock Name="EntryCountText" Text="" VerticalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+        </Border>
+
         <!-- Main Content -->
-        <Grid Grid.Row="1" Padding="16,0,16,12" ColumnSpacing="16">
+        <Grid Grid.Row="2" Padding="36,0,36,12" ColumnSpacing="16">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="280"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="280" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0"
-                    Padding="18"
-                    CornerRadius="16"
-                    BorderThickness="1"
-                    Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                Padding="0"
+                BorderThickness="0">
                 <Grid RowSpacing="12">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <StackPanel Spacing="4">
-                        <TextBlock Text="词库列表" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        <TextBlock Text="词库列表" Style="{ThemeResource SubtitleTextBlockStyle}" />
                         <TextBlock x:Name="LibraryListHintText"
-                                   Text="打开文件夹后，这里会显示可加载的词库。"
-                                   TextWrapping="WrapWholeWords"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            Text="打开文件夹后，这里会显示可加载的词库。"
+                            TextWrapping="WrapWholeWords"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                     </StackPanel>
-                    <Border Grid.Row="1"
-                            Padding="6"
-                            CornerRadius="12"
-                            Background="{ThemeResource LayerFillColorDefaultBrush}">
+                    <Border Grid.Row="1">
                         <ListBox x:Name="LibraryListBox"
-                                 SelectionChanged="LibraryListBox_SelectionChanged"
-                                 DisplayMemberPath="DisplayName"
-                                 BorderThickness="0"
-                                 Background="Transparent"/>
+                            SelectionChanged="LibraryListBox_SelectionChanged"
+                            DisplayMemberPath="DisplayName"
+                            BorderThickness="0"
+                            Background="Transparent" />
                     </Border>
                 </Grid>
             </Border>
 
             <Border Grid.Column="1"
-                    Padding="18"
-                    CornerRadius="16"
-                    BorderThickness="1"
-                    Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                Padding="0"
+                BorderThickness="0">
                 <Grid>
-                    <Frame Name="LexFrame" Visibility="Collapsed" Background="Transparent"/>
-                    <Frame Name="IHFrame" Visibility="Collapsed" Background="Transparent"/>
-                    <Frame Name="UDLFrame" Visibility="Collapsed" Background="Transparent"/>
-                    <Frame Name="ViewerFrame" Visibility="Collapsed" Background="Transparent"/>
+                    <Frame Name="LexFrame" Visibility="Collapsed" Background="Transparent" />
+                    <Frame Name="IHFrame" Visibility="Collapsed" Background="Transparent" />
+                    <Frame Name="UDLFrame" Visibility="Collapsed" Background="Transparent" />
+                    <Frame Name="ViewerFrame" Visibility="Collapsed" Background="Transparent" />
                     <Border x:Name="EmptyContentState"
-                            Background="{ThemeResource LayerFillColorDefaultBrush}"
-                            CornerRadius="14"
-                            Padding="32">
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" MaxWidth="360">
-                            <FontIcon Glyph="&#xE8A5;" FontSize="28" HorizontalAlignment="Center"/>
+                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        CornerRadius="14"
+                        Padding="32">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                            Spacing="10" MaxWidth="360">
+                            <FontIcon Glyph="&#xE8A5;" FontSize="28" HorizontalAlignment="Center" />
                             <TextBlock Text="请先打开文件夹"
-                                       Style="{ThemeResource TitleTextBlockStyle}"
-                                       HorizontalAlignment="Center"/>
+                                Style="{ThemeResource TitleTextBlockStyle}"
+                                HorizontalAlignment="Center" />
                             <TextBlock Text="选择包含词库文件的文件夹后，可在左侧切换不同词库。"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                       TextWrapping="WrapWholeWords"
-                                       HorizontalAlignment="Center"
-                                       TextAlignment="Center"/>
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                TextWrapping="WrapWholeWords"
+                                HorizontalAlignment="Center"
+                                TextAlignment="Center" />
                         </StackPanel>
                     </Border>
                 </Grid>
             </Border>
         </Grid>
 
-        <!-- Bottom Status Bar -->
-        <Border Grid.Row="2"
-                Margin="16,0,16,16"
-                Padding="14,10"
-                CornerRadius="14"
-                BorderThickness="1"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
-            <StackPanel Orientation="Horizontal" Spacing="20">
-                <TextBlock Name="CurrentFileText" Text="未打开文件" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                <TextBlock Name="EntryCountText" Text="" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-            </StackPanel>
-        </Border>
     </Grid>
 </Window>
