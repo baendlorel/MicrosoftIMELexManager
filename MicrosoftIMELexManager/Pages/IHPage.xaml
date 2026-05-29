@@ -17,11 +17,13 @@
     <Grid Margin="{ThemeResource ContentDialogPadding}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Toolbar -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+            <!--
             <Button Name="DeleteButton" Click="Delete_Click">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <FontIcon Glyph="&#xE74D;"/>
@@ -40,28 +42,28 @@
                     <TextBlock Text="一键清零词频"/>
                 </StackPanel>
             </Button>
+            -->
             <TextBlock Text="搜索：" VerticalAlignment="Center" Margin="16,0,4,0"/>
             <TextBox Name="SearchBox" Width="200" Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="词语"/>
         </StackPanel>
 
+        <Grid Grid.Row="1" Margin="15,0,0,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="44"/>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="150"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="1" Text="词语" Margin="8,4"/>
+            <TextBlock Grid.Column="2" Text="词频 (1-4)" Margin="8,4"/>
+            <TextBlock Grid.Column="3" Text="时间" Margin="8,4"/>
+        </Grid>
+
         <!-- Data Grid -->
-        <ListView Grid.Row="1" Name="IHListView"
+        <ListView Grid.Row="2" Name="IHListView"
                   ItemsSource="{x:Bind ViewModel.FilteredEntries, Mode=OneWay}"
                   SelectionMode="Extended"
                   HorizontalAlignment="Stretch">
-            <ListView.Header>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="44"/>
-                        <ColumnDefinition Width="200"/>
-                        <ColumnDefinition Width="100"/>
-                        <ColumnDefinition Width="150"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="1" Text="词语" Margin="8,4"/>
-                    <TextBlock Grid.Column="2" Text="词频 (1-4)" Margin="8,4"/>
-                    <TextBlock Grid.Column="3" Text="时间戳" Margin="8,4"/>
-                </Grid>
-            </ListView.Header>
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="models:IHEntry">
                     <Grid>
@@ -73,8 +75,9 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="{Binding DisplayIndex}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="4,4,9,4" Foreground="Gray"/>
                         <TextBlock Grid.Column="1" Text="{Binding Word}" VerticalAlignment="Center" Margin="4" IsTextSelectionEnabled="True"/>
-                        <Slider Grid.Column="2" Value="{Binding Frequency, Mode=TwoWay}" Minimum="1" Maximum="4" TickFrequency="1" SnapsTo="Ticks" Margin="4" VerticalAlignment="Center"/>
-                        <TextBlock Grid.Column="3" Text="{Binding Timestamp}" VerticalAlignment="Center" Margin="4" Foreground="Gray"/>
+                        <!-- <Slider Grid.Column="2" Value="{Binding Frequency, Mode=TwoWay}" Minimum="1" Maximum="4" TickFrequency="1" SnapsTo="Ticks" Margin="4" VerticalAlignment="Center"/> -->
+                        <TextBlock Grid.Column="2" Text="{Binding Frequency}" VerticalAlignment="Center" Margin="4" Foreground="Gray"/>
+                        <TextBlock Grid.Column="3" Text="{Binding FormattedTimestamp}" VerticalAlignment="Center" Margin="4" Foreground="Gray"/>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>

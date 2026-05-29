@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
@@ -26,6 +26,8 @@ namespace MicrosoftIMELexManager
     /// </summary>
     public partial class App : Application
     {
+        public static Window? MainWindow { get; private set; }
+
         private Window? _window;
 
         /// <summary>
@@ -44,6 +46,7 @@ namespace MicrosoftIMELexManager
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
             _window = new MainWindow();
+            MainWindow = _window;
             _window.Activate();
         }
     }

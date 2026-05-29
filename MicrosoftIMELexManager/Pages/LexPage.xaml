@@ -18,6 +18,7 @@
     <Grid Margin="{ThemeResource ContentDialogPadding}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -51,24 +52,23 @@
             <TextBox Name="SearchBox" Width="200" Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="拼音或词语"/>
         </StackPanel>
 
+        <Grid Grid.Row="1" Margin="15,0,0,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="44"/>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="120"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="1" Text="拼音" Margin="8,4"/>
+            <TextBlock Grid.Column="2" Text="词语" Margin="8,4"/>
+            <TextBlock Grid.Column="3" Text="候选位置" Margin="8,4"/>
+        </Grid>
+
         <!-- Data Grid -->
-        <ListView Grid.Row="1" Name="LexListView"
+        <ListView Grid.Row="2" Name="LexListView"
                   ItemsSource="{x:Bind ViewModel.FilteredEntries, Mode=OneWay}"
                   SelectionMode="Extended"
                   HorizontalAlignment="Stretch">
-            <ListView.Header>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="44"/>
-                        <ColumnDefinition Width="150"/>
-                        <ColumnDefinition Width="300"/>
-                        <ColumnDefinition Width="80"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="1" Text="拼音" Margin="8,4"/>
-                    <TextBlock Grid.Column="2" Text="词语" Margin="8,4"/>
-                    <TextBlock Grid.Column="3" Text="候选位置" Margin="8,4"/>
-                </Grid>
-            </ListView.Header>
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="models:LexEntry">
                     <Grid>
@@ -76,13 +76,15 @@
                             <ColumnDefinition Width="44"/>
                             <ColumnDefinition Width="150"/>
                             <ColumnDefinition Width="300"/>
-                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="120"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="{Binding DisplayIndex}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="4,4,9,4" Foreground="Gray"/>
                         <TextBox Grid.Column="1" Text="{Binding Pinyin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4"/>
                         <TextBox Grid.Column="2" Text="{Binding Phrase, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4"/>
                         <DropDownButton Grid.Column="3"
                                         Content="{Binding CandidateIndex}"
+                                        Width="80"
+                                        HorizontalAlignment="Left"
                                         Margin="4">
                             <DropDownButton.Flyout>
                                 <MenuFlyout>

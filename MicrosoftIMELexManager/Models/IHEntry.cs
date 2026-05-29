@@ -1,3 +1,5 @@
+using MicrosoftIMELexManager.Services;
+
 namespace MicrosoftIMELexManager.Models;
 
 public sealed class IHEntry
@@ -15,6 +17,8 @@ public sealed class IHEntry
     /// Timestamp in seconds since 2000-01-01 00:00:00 UTC.
     /// </summary>
     public uint Timestamp { get; set; }
+
+    public string FormattedTimestamp => MicrosoftImeTimestamp.FormatTimestamp(Timestamp);
 
     public override string ToString() => $"{Word} (freq={Frequency}, ts=0x{Timestamp:X8})";
 }

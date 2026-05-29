@@ -18,11 +18,13 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Toolbar -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+            <!--
             <Button Name="AddNewButton" Click="AddNew_Click">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <FontIcon Glyph="&#xE710;"/>
@@ -35,6 +37,7 @@
                     <TextBlock Text="删除选中"/>
                 </StackPanel>
             </Button>
+            -->
             <TextBlock Text="搜索：" VerticalAlignment="Center" Margin="16,0,4,0"/>
             <TextBox Name="SearchBox" Width="200" Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="词语或拼音"/>
         </StackPanel>
@@ -42,26 +45,25 @@
         <TextBlock Grid.Row="1"
                    Margin="0,0,0,12"
                    Foreground="Gray"
-                   Text="可直接编辑词语和拼音；拼音请按空格分隔，且音节数需与字数一致。"/>
+                   Text="当前页面仅用于展示自学习词汇内容。"/>
+
+        <Grid Grid.Row="2" Margin="15,0,0,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="44"/>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="150"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="1" Text="词语" Margin="8,4"/>
+            <TextBlock Grid.Column="2" Text="拼音" Margin="8,4"/>
+            <TextBlock Grid.Column="3" Text="插入时间" Margin="8,4"/>
+        </Grid>
 
         <!-- Data Grid -->
-        <ListView Grid.Row="2" Name="UDLListView"
+        <ListView Grid.Row="3" Name="UDLListView"
                   ItemsSource="{x:Bind ViewModel.FilteredEntries, Mode=OneWay}"
                   SelectionMode="Extended"
                   HorizontalAlignment="Stretch">
-            <ListView.Header>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="44"/>
-                        <ColumnDefinition Width="200"/>
-                        <ColumnDefinition Width="200"/>
-                        <ColumnDefinition Width="150"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="1" Text="词语" Margin="8,4"/>
-                    <TextBlock Grid.Column="2" Text="拼音" Margin="8,4"/>
-                    <TextBlock Grid.Column="3" Text="插入时间" Margin="8,4"/>
-                </Grid>
-            </ListView.Header>
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="models:UDLEntry">
                     <Grid>
@@ -72,9 +74,11 @@
                             <ColumnDefinition Width="150"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="{Binding DisplayIndex}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="4,4,9,4" Foreground="Gray"/>
-                        <TextBox Grid.Column="1" Text="{Binding Word, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4" TextChanged="EditableField_TextChanged" LostFocus="EditableField_LostFocus"/>
-                        <TextBox Grid.Column="2" Text="{Binding PinyinText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4" Foreground="Gray" TextChanged="EditableField_TextChanged" LostFocus="EditableField_LostFocus"/>
-                        <TextBlock Grid.Column="3" Text="{Binding Timestamp}" VerticalAlignment="Center" Margin="4" Foreground="DarkGray"/>
+                        <!-- <TextBox Grid.Column="1" Text="{Binding Word, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4" TextChanged="EditableField_TextChanged" LostFocus="EditableField_LostFocus"/> -->
+                        <TextBlock Grid.Column="1" Text="{Binding Word}" VerticalAlignment="Center" Margin="4" IsTextSelectionEnabled="True"/>
+                        <!-- <TextBox Grid.Column="2" Text="{Binding PinyinText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4" Foreground="Gray" TextChanged="EditableField_TextChanged" LostFocus="EditableField_LostFocus"/> -->
+                        <TextBlock Grid.Column="2" Text="{Binding PinyinText}" VerticalAlignment="Center" Margin="4" Foreground="Gray" IsTextSelectionEnabled="True"/>
+                        <TextBlock Grid.Column="3" Text="{Binding FormattedTimestamp}" VerticalAlignment="Center" Margin="4" Foreground="DarkGray"/>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
