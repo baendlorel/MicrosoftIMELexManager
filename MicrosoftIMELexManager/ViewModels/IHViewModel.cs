@@ -62,8 +62,9 @@ public partial class IHViewModel : ObservableObject
         foreach (var item in items.OfType<IHEntry>().ToList())
         {
             AllEntries.Remove(item);
-            FilteredEntries.Remove(item);
         }
+
+        ApplyFilter();
         IsModified = true;
     }
 
@@ -80,11 +81,16 @@ public partial class IHViewModel : ObservableObject
     private void ApplyFilter()
     {
         FilteredEntries.Clear();
-        var filtered = string.IsNullOrWhiteSpace(SearchText)
+        var filtered = (string.IsNullOrWhiteSpace(SearchText)
             ? AllEntries
-            : AllEntries.Where(e => e.Word.Contains(SearchText, StringComparison.Ordinal));
+            : AllEntries.Where(e => e.Word.Contains(SearchText, StringComparison.Ordinal)))
+            .ToList();
 
-        foreach (var entry in filtered)
+        for (int i = 0; i < filtered.Count; i++)
+        {
+            var entry = filtered[i];
+            entry.DisplayIndex = $"{i + 1}.";
             FilteredEntries.Add(entry);
+        }
     }
 }

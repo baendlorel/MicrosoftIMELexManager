@@ -2,6 +2,8 @@ namespace MicrosoftIMELexManager.Models;
 
 public sealed class LexEntry
 {
+    public string DisplayIndex { get; set; } = string.Empty;
+
     public string Pinyin { get; set; } = string.Empty;
 
     public string Phrase { get; set; } = string.Empty;

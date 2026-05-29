@@ -40,26 +40,29 @@
             <ListView.Header>
                 <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="44"/>
                         <ColumnDefinition Width="200"/>
                         <ColumnDefinition Width="200"/>
                         <ColumnDefinition Width="150"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="词语" Margin="8,4"/>
-                    <TextBlock Grid.Column="1" Text="拼音" Margin="8,4"/>
-                    <TextBlock Grid.Column="2" Text="插入时间" Margin="8,4"/>
+                    <TextBlock Grid.Column="1" Text="词语" Margin="8,4"/>
+                    <TextBlock Grid.Column="2" Text="拼音" Margin="8,4"/>
+                    <TextBlock Grid.Column="3" Text="插入时间" Margin="8,4"/>
                 </Grid>
             </ListView.Header>
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="models:UDLEntry">
                     <Grid>
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="44"/>
                             <ColumnDefinition Width="200"/>
                             <ColumnDefinition Width="200"/>
                             <ColumnDefinition Width="150"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding Word}" VerticalAlignment="Center" Margin="4" IsTextSelectionEnabled="True"/>
-                        <TextBlock Grid.Column="1" Text="{Binding PinyinText}" VerticalAlignment="Center" Margin="4" Foreground="Gray" IsTextSelectionEnabled="True"/>
-                        <TextBlock Grid.Column="2" Text="{Binding Timestamp}" VerticalAlignment="Center" Margin="4" Foreground="DarkGray"/>
+                        <TextBlock Grid.Column="0" Text="{Binding DisplayIndex}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="4,4,9,4" Foreground="Gray"/>
+                        <TextBlock Grid.Column="1" Text="{Binding Word}" VerticalAlignment="Center" Margin="4" IsTextSelectionEnabled="True"/>
+                        <TextBlock Grid.Column="2" Text="{Binding PinyinText}" VerticalAlignment="Center" Margin="4" Foreground="Gray" IsTextSelectionEnabled="True"/>
+                        <TextBlock Grid.Column="3" Text="{Binding Timestamp}" VerticalAlignment="Center" Margin="4" Foreground="DarkGray"/>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>

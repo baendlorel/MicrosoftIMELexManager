@@ -74,9 +74,10 @@ public partial class UDLViewModel : ObservableObject
         foreach (var item in items.OfType<UDLEntry>().ToList())
         {
             AllEntries.Remove(item);
-            FilteredEntries.Remove(item);
             _indicesToDelete.Add(item.RecordIndex);
         }
+
+        ApplyFilter();
         IsModified = true;
     }
 
@@ -85,13 +86,18 @@ public partial class UDLViewModel : ObservableObject
     private void ApplyFilter()
     {
         FilteredEntries.Clear();
-        var filtered = string.IsNullOrWhiteSpace(SearchText)
+        var filtered = (string.IsNullOrWhiteSpace(SearchText)
             ? AllEntries.Where(e => !_indicesToDelete.Contains(e.RecordIndex))
             : AllEntries.Where(e => !_indicesToDelete.Contains(e.RecordIndex) &&
                                     (e.Word.Contains(SearchText, StringComparison.Ordinal) ||
-                                    e.PinyinText.Contains(SearchText, StringComparison.OrdinalIgnoreCase)));
+                                    e.PinyinText.Contains(SearchText, StringComparison.OrdinalIgnoreCase))))
+            .ToList();
 
-        foreach (var entry in filtered)
+        for (int i = 0; i < filtered.Count; i++)
+        {
+            var entry = filtered[i];
+            entry.DisplayIndex = $"{i + 1}.";
             FilteredEntries.Add(entry);
+        }
     }
 }

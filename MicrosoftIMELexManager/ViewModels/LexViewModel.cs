@@ -62,7 +62,7 @@ public partial class LexViewModel : ObservableObject
     {
         if (entry is null) return;
         AllEntries.Remove(entry);
-        FilteredEntries.Remove(entry);
+        ApplyFilter();
         IsModified = true;
     }
 
@@ -79,12 +79,17 @@ public partial class LexViewModel : ObservableObject
     private void ApplyFilter()
     {
         FilteredEntries.Clear();
-        var filtered = string.IsNullOrWhiteSpace(SearchText)
+        var filtered = (string.IsNullOrWhiteSpace(SearchText)
             ? AllEntries
             : AllEntries.Where(e => e.Pinyin.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-                                    e.Phrase.Contains(SearchText, StringComparison.Ordinal));
+                                    e.Phrase.Contains(SearchText, StringComparison.Ordinal)))
+            .ToList();
 
-        foreach (var entry in filtered)
+        for (int i = 0; i < filtered.Count; i++)
+        {
+            var entry = filtered[i];
+            entry.DisplayIndex = $"{i + 1}.";
             FilteredEntries.Add(entry);
+        }
     }
 }

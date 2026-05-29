@@ -11,7 +11,7 @@ namespace MicrosoftIMELexManager.Services;
 public sealed class LexFileService
 {
     private const string Magic = "mschxudp";
-    private const int HeaderSize = 68; // 0x44
+    private const int HeaderSize = 72; // 0x48, includes FirstRecordOffset
 
     public List<LexEntry> Read(string path)
     {

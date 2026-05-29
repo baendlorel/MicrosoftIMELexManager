@@ -2,6 +2,8 @@ namespace MicrosoftIMELexManager.Models;
 
 public sealed class UDLEntry
 {
+    public string DisplayIndex { get; set; } = string.Empty;
+
     public string Word { get; set; } = string.Empty;
 
     /// <summary>

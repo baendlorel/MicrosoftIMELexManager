@@ -58,26 +58,29 @@
             <ListView.Header>
                 <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="44"/>
                         <ColumnDefinition Width="150"/>
                         <ColumnDefinition Width="300"/>
                         <ColumnDefinition Width="80"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="拼音" Margin="8,4"/>
-                    <TextBlock Grid.Column="1" Text="词语" Margin="8,4"/>
-                    <TextBlock Grid.Column="2" Text="候选位置" Margin="8,4"/>
+                    <TextBlock Grid.Column="1" Text="拼音" Margin="8,4"/>
+                    <TextBlock Grid.Column="2" Text="词语" Margin="8,4"/>
+                    <TextBlock Grid.Column="3" Text="候选位置" Margin="8,4"/>
                 </Grid>
             </ListView.Header>
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="models:LexEntry">
                     <Grid>
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="44"/>
                             <ColumnDefinition Width="150"/>
                             <ColumnDefinition Width="300"/>
                             <ColumnDefinition Width="80"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox Grid.Column="0" Text="{Binding Pinyin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4"/>
-                        <TextBox Grid.Column="1" Text="{Binding Phrase, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4"/>
-                        <NumberBox Grid.Column="2" Value="{Binding CandidateIndex, Mode=TwoWay}" Minimum="1" Maximum="9" Margin="4" SpinButtonPlacementMode="Compact"/>
+                        <TextBlock Grid.Column="0" Text="{Binding DisplayIndex}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="4,4,9,4" Foreground="Gray"/>
+                        <TextBox Grid.Column="1" Text="{Binding Pinyin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4"/>
+                        <TextBox Grid.Column="2" Text="{Binding Phrase, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4"/>
+                        <NumberBox Grid.Column="3" Value="{Binding CandidateIndex, Mode=TwoWay}" Minimum="1" Maximum="9" Margin="4" SpinButtonPlacementMode="Compact"/>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
