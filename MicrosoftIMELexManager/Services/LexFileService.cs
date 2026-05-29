@@ -11,7 +11,7 @@ namespace MicrosoftIMELexManager.Services;
 public sealed class LexFileService
 {
     private const string Magic = "mschxudp";
-    private const int HeaderSize = 72; // 0x48, includes FirstRecordOffset
+    private const int OffsetTableStart = 0x40;
 
     public List<LexEntry> Read(string path)
     {
@@ -28,44 +28,41 @@ public sealed class LexFileService
         _ = reader.ReadUInt16(); // Version
         _ = reader.ReadUInt16(); // Reserved
         _ = reader.ReadUInt32(); // Flags
-        _ = reader.ReadUInt32(); // BaseOffset
-        _ = reader.ReadUInt32(); // OffsetTableTotal
-        _ = reader.ReadUInt32(); // TotalDataSize
+        uint offsetTableStart = reader.ReadUInt32();
+        uint recordStart = reader.ReadUInt32();
+        uint totalSize = reader.ReadUInt32();
         uint phraseCount = reader.ReadUInt32();
         _ = reader.ReadUInt32(); // Timestamp/Counter
         _ = reader.ReadBytes(32); // Reserved
-        _ = reader.ReadUInt32(); // FirstRecordOffset (always 0)
 
-        // Read offset table (phraseCount - 1 entries)
-        uint[] offsets = new uint[phraseCount - 1];
+        if (offsetTableStart != OffsetTableStart)
+            throw new InvalidDataException($"Unexpected offset table start: 0x{offsetTableStart:X}");
+
+        if (recordStart > data.Length)
+            throw new InvalidDataException("Record area starts beyond the end of file");
+
+        if (phraseCount > 0 && recordStart < OffsetTableStart + phraseCount * 4)
+            throw new InvalidDataException("Offset table overlaps record area");
+
+        // Read offset table (phraseCount entries)
+        ms.Position = OffsetTableStart;
+        uint[] offsets = new uint[phraseCount];
         for (int i = 0; i < offsets.Length; i++)
             offsets[i] = reader.ReadUInt32();
 
-        // Data area starts after offset table
-        long firstBlockPos = HeaderSize + 4L * (phraseCount - 1);
-
         var entries = new List<LexEntry>((int)phraseCount);
-        long lastPos = 0;
 
         for (int i = 0; i < phraseCount; i++)
         {
-            long blockEnd;
-            if (i < phraseCount - 1)
-            {
-                blockEnd = offsets[i];
-            }
-            else
-            {
-                blockEnd = data.Length - firstBlockPos;
-            }
+            long segStart = recordStart + offsets[i];
+            long blockEnd = i + 1 < phraseCount
+                ? recordStart + offsets[i + 1]
+                : Math.Min(totalSize, (uint)data.Length);
+            long blockLen = blockEnd - segStart;
 
-            long blockLen = blockEnd - lastPos;
-            long segStart = firstBlockPos + lastPos;
-            lastPos = blockEnd;
+            if (segStart >= data.Length || blockEnd > data.Length || blockLen < 16) continue;
 
-            if (blockLen < 16) continue;
-
-            // Check deleted flag: byte[9] of record
+            // Skip records explicitly marked deleted in the record header.
             if (data[segStart + 9] != 0x00) continue;
 
             // Parse record header (16 bytes)
@@ -77,7 +74,6 @@ public sealed class LexFileService
             // Offset +12: TypeCode (uint16)
             // Offset +14: TailByte1, TailByte2
 
-            ushort pinyinBlockSize = BinaryPrimitives.ReadUInt16LittleEndian(data.AsSpan((int)segStart + 4, 2));
             uint candidateIndex = BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan((int)segStart + 6, 4));
 
             // Body starts at segStart + 16
@@ -111,8 +107,17 @@ public sealed class LexFileService
 
     public void Write(string path, List<LexEntry> entries)
     {
-        // Sort entries by pinyin byte order (matching original file ordering)
-        var sorted = entries.OrderBy(e => e.Pinyin, StringComparer.Ordinal).ToList();
+        var sorted = entries
+            .Select(e => new LexEntry
+            {
+                Pinyin = e.Pinyin.ToLowerInvariant(),
+                Phrase = e.Phrase,
+                CandidateIndex = e.CandidateIndex,
+            })
+            .OrderBy(e => e.Pinyin, StringComparer.Ordinal)
+            .ThenBy(e => e.CandidateIndex)
+            .ThenBy(e => e.Phrase, StringComparer.CurrentCulture)
+            .ToList();
 
         using var ms = new MemoryStream();
         using var writer = new BinaryWriter(ms);
@@ -131,26 +136,25 @@ public sealed class LexFileService
         writer.Write((ushort)2);                         // 0x08: Version
         writer.Write((ushort)0x0060);                    // 0x0A: Reserved
         writer.Write((uint)1);                           // 0x0C: Flags
-        writer.Write((uint)0x40);                        // 0x10: BaseOffset
+        writer.Write((uint)OffsetTableStart);            // 0x10: OffsetTableStart
 
-        uint offsetTableSize = (uint)(4 * (phraseCount > 0 ? phraseCount - 1 : 0));
-        writer.Write((uint)(0x40 + offsetTableSize));   // 0x14: OffsetTableTotal (header + offset table)
+        uint recordStart = (uint)(OffsetTableStart + phraseCount * 4);
+        writer.Write(recordStart);                       // 0x14: RecordStart
 
         uint totalDataSize = 0;
         foreach (var seg in segments) totalDataSize += (uint)seg.Length;
-        writer.Write(totalDataSize);                     // 0x18: TotalDataSize
+        writer.Write(recordStart + totalDataSize);      // 0x18: TotalFileSize
 
         writer.Write(phraseCount);                       // 0x1C: PhraseCount
         writer.Write((uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds()); // 0x20: Timestamp
         writer.Write(new byte[32]);                      // 0x24: Reserved (32 bytes)
-        writer.Write((uint)0);                           // 0x40: FirstRecordOffset
 
-        // Write offset table (phraseCount - 1 entries)
+        // Write offset table (phraseCount entries)
         uint cumulativeOffset = 0;
-        for (int i = 0; i < segments.Count - 1; i++)
+        for (int i = 0; i < segments.Count; i++)
         {
-            cumulativeOffset += (uint)segments[i].Length;
             writer.Write(cumulativeOffset);
+            cumulativeOffset += (uint)segments[i].Length;
         }
 
         // Write data area
