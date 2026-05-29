@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,25 +28,39 @@ public sealed partial class MainWindow : Window
 
     private void InitializePages()
     {
-        _lexPage = new LexPage();
-        _ihPage = new IHPage();
-        _udlPage = new UDLPage();
-        _viewerPage = new ViewerPage();
+        Log("开始初始化页面。");
 
-        LexFrame.Navigate(_lexPage.GetType());
-        IHFrame.Navigate(_ihPage.GetType());
-        UDLFrame.Navigate(_udlPage.GetType());
-        ViewerFrame.Navigate(_viewerPage.GetType());
+        _lexPage = NavigateFrame<LexPage>(LexFrame);
+        _ihPage = NavigateFrame<IHPage>(IHFrame);
+        _udlPage = NavigateFrame<UDLPage>(UDLFrame);
+        _viewerPage = NavigateFrame<ViewerPage>(ViewerFrame);
+
+        Log($"页面初始化完成。Lex={_lexPage.GetHashCode()}, IH={_ihPage.GetHashCode()}, UDL={_udlPage.GetHashCode()}, Viewer={_viewerPage.GetHashCode()}");
 
         _ = TryAutoLoadAsync();
+    }
+
+    private T NavigateFrame<T>(Frame frame) where T : Page
+    {
+        var success = frame.Navigate(typeof(T));
+        Log($"导航到 {typeof(T).Name}: success={success}, content={frame.Content?.GetType().Name ?? "null"}");
+
+        if (frame.Content is T page)
+        {
+            return page;
+        }
+
+        throw new InvalidOperationException($"无法获取 {typeof(T).Name} 的已显示实例。");
     }
 
     private async Task TryAutoLoadAsync()
     {
         try
         {
+            Log("开始自动加载默认词库目录。");
             var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             var imePath = Path.Combine(appDataPath, @"Microsoft\InputMethod\Chs");
+            Log($"检查目录: {imePath}");
 
             if (Directory.Exists(imePath))
             {
@@ -54,18 +69,27 @@ public sealed partial class MainWindow : Window
                 var udlFile = Path.Combine(imePath, "ChsPinyinUDL.dat");
 
                 if (File.Exists(lexFile) && _lexPage != null)
+                {
+                    Log($"自动加载 lex: {lexFile}");
                     await _lexPage.ViewModel.LoadAsync(lexFile);
+                }
                 if (File.Exists(ihFile) && _ihPage != null)
+                {
+                    Log($"自动加载 ih: {ihFile}");
                     await _ihPage.ViewModel.LoadAsync(ihFile);
+                }
                 if (File.Exists(udlFile) && _udlPage != null)
+                {
+                    Log($"自动加载 udl: {udlFile}");
                     await _udlPage.ViewModel.LoadAsync(udlFile);
+                }
 
                 UpdateStatus(imePath);
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Silent fail on auto-load
+            Log($"自动加载失败: {ex}");
         }
     }
 
@@ -86,6 +110,7 @@ public sealed partial class MainWindow : Window
 
     private async void OpenFile_Click(object sender, RoutedEventArgs e)
     {
+        Log("用户点击打开单个文件。");
         var filePicker = new Windows.Storage.Pickers.FileOpenPicker();
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
         WinRT.Interop.InitializeWithWindow.Initialize(filePicker, hwnd);
@@ -97,29 +122,36 @@ public sealed partial class MainWindow : Window
         filePicker.FileTypeFilter.Add("*"); // 允许所有文件
 
         var file = await filePicker.PickSingleFileAsync();
+        Log(file == null ? "文件选择已取消。" : $"已选择文件: name={file.Name}, path={file.Path}");
         if (file != null)
         {
             try
             {
                 // 获取文件路径
                 var filePath = file.Path;
+                Log($"准备打开文件路径: {filePath}");
 
                 if (string.IsNullOrEmpty(filePath))
                 {
+                    Log("文件路径为空，终止加载。");
                     await ShowErrorDialog("文件路径错误", "无法获取文件路径，请尝试使用\"打开文件夹\"功能");
                     return;
                 }
 
                 // 切换到查看标签页并加载文件
                 MainTabView.SelectedIndex = 3; // ViewerTab
+                Log($"已切换到查看标签页。ViewerPage实例: {_viewerPage?.GetHashCode().ToString() ?? "null"}");
                 if (_viewerPage != null)
                 {
+                    Log("开始调用 ViewerPage.LoadFileAsync。");
                     await _viewerPage.LoadFileAsync(filePath);
+                    Log("ViewerPage.LoadFileAsync 调用完成。");
                 }
                 UpdateStatus($"查看文件: {file.Name}");
             }
             catch (Exception ex)
             {
+                Log($"打开文件失败: {ex}");
                 await ShowErrorDialog("打开文件失败", $"无法打开文件: {ex.Message}\n\n文件: {file.Name}\n路径: {file.Path}");
             }
         }
@@ -320,6 +352,14 @@ public sealed partial class MainWindow : Window
                            (_ihPage?.ViewModel.AllEntries.Count ?? 0) +
                            (_udlPage?.ViewModel.AllEntries.Count ?? 0);
         EntryCountText.Text = $"总条目数: {totalEntries}";
+        Log($"状态栏已更新: path={CurrentFileText.Text}, entries={EntryCountText.Text}");
+    }
+
+    private static void Log(string message)
+    {
+        var formatted = $"[MainWindow {DateTime.Now:HH:mm:ss.fff}] {message}";
+        Debug.WriteLine(formatted);
+        Console.WriteLine(formatted);
     }
 
     private async Task ShowErrorDialog(string title, string message)

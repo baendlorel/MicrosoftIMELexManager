@@ -55,15 +55,29 @@
                   SelectionMode="None"
                   HorizontalAlignment="Stretch"
                   Margin="0,12,0,0">
-            <ListView.Header>
-                <TextBlock Text="文件内容预览" FontWeight="SemiBold" Margin="0,0,0,8"/>
-            </ListView.Header>
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="4,2"/>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
+
+        <!-- Loading Overlay -->
+        <Grid Grid.Row="2" Name="LoadingOverlay" Visibility="Collapsed" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Opacity="0.85">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
+                <ProgressRing IsActive="True" Width="48" Height="48" HorizontalAlignment="Center"/>
+                <TextBlock Name="LoadingText" Text="正在加载文件..." HorizontalAlignment="Center" FontSize="14"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Error State -->
+        <Grid Grid.Row="2" Name="ErrorState" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel Spacing="12" HorizontalAlignment="Center">
+                <FontIcon Glyph="&#xE893;" FontSize="64" Foreground="Red" Opacity="0.7" HorizontalAlignment="Center"/>
+                <TextBlock Name="ErrorTitleText" Text="加载失败" Foreground="Red" FontWeight="SemiBold" FontSize="18" HorizontalAlignment="Center"/>
+                <TextBlock Name="ErrorMessageText" Text="" Foreground="Red" FontSize="13" HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="500"/>
+            </StackPanel>
+        </Grid>
 
         <!-- Empty State -->
         <Grid Grid.Row="2" Name="EmptyState" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">

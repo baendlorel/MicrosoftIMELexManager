@@ -1,4 +1,6 @@
 using System;
+using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,142 +16,184 @@ public sealed partial class ViewerPage : Page
     public ViewerPage()
     {
         InitializeComponent();
+        Log("ViewerPage 已构造。");
         ShowEmptyState();
     }
 
     public async Task LoadFileAsync(string filePath)
     {
+        Log($"LoadFileAsync 开始: path={filePath}");
+        if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+        {
+            Log("文件不存在或路径为空。");
+            ShowError("文件不存在", filePath ?? "未知路径");
+            return;
+        }
+
+        ShowLoading("正在读取文件...");
+
         try
         {
-            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
-            {
-                ShowError($"文件不存在: {filePath ?? "未知路径"}");
-                return;
-            }
-
             var fileInfo = new FileInfo(filePath);
+            Log($"文件信息: name={fileInfo.Name}, length={fileInfo.Length}, instance={GetHashCode()}");
 
-            // 更新文件信息
             FileNameText.Text = fileInfo.Name;
             FileInfoText.Text = $"路径: {fileInfo.DirectoryName}";
             FileSizeText.Text = FormatFileSize(fileInfo.Length);
             ModifiedTimeText.Text = fileInfo.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss");
 
-            // 根据文件扩展名判断类型并解析
             var extension = fileInfo.Extension.ToLowerInvariant();
-            var fileType = "";
+            Log($"识别扩展名: {extension}");
 
             if (extension == ".lex")
             {
-                fileType = "自定义短语";
+                Log("按 .lex 文件处理。");
+                FileTypeText.Text = "自定义短语 (.lex)";
                 await LoadLexFileAsync(filePath);
             }
             else if (extension == ".dat")
             {
-                // 判断是 IH 还是 UDL
-                if (fileInfo.Name.Contains("IH.dat"))
+                if (fileInfo.Name.Contains("IH", StringComparison.OrdinalIgnoreCase))
                 {
-                    fileType = "输入历史 (IH.dat)";
+                    Log("识别为 IH.dat 文件。");
+                    FileTypeText.Text = fileInfo.Name.Contains("Beta")
+                        ? "输入历史 Beta (IH.dat)"
+                        : "输入历史 (IH.dat)";
                     await LoadIHFileAsync(filePath);
                 }
-                else if (fileInfo.Name.Contains("UDL.dat"))
+                else if (fileInfo.Name.Contains("UDL", StringComparison.OrdinalIgnoreCase))
                 {
-                    fileType = "自学习词汇 (UDL.dat)";
+                    Log("识别为 UDL.dat 文件。");
+                    FileTypeText.Text = fileInfo.Name.Contains("Beta")
+                        ? "自学习词汇 Beta (UDL.dat)"
+                        : "自学习词汇 (UDL.dat)";
                     await LoadUDLFileAsync(filePath);
                 }
                 else
                 {
-                    fileType = "数据文件";
-                    ShowUnknownFile(filePath);
+                    Log("无法识别具体 .dat 文件类型。");
+                    FileTypeText.Text = "数据文件";
+                    ShowError("无法识别的数据文件", $"不支持直接查看此 .dat 文件: {fileInfo.Name}\n\n目前支持: ChsPinyinIH.dat, ChsPinyinUDL.dat");
                 }
             }
             else
             {
-                fileType = "未知文件";
-                ShowUnknownFile(filePath);
+                Log("不支持的扩展名。");
+                FileTypeText.Text = "未知格式";
+                ShowError("无法识别的文件格式", $"不支持的文件扩展名: {extension}\n\n请打开 .lex 或 .dat 文件");
             }
-
-            FileTypeText.Text = fileType;
-            HideEmptyState();
         }
         catch (Exception ex)
         {
-            ShowError($"加载文件失败: {ex.Message}\n\n堆栈跟踪: {ex.StackTrace}");
+            Log($"LoadFileAsync 异常: {ex}");
+            ShowError("加载失败", ex.Message);
         }
     }
 
     private async Task LoadLexFileAsync(string path)
     {
+        ShowLoading("正在解析自定义短语...");
+
         var service = new LexFileService();
         var entries = await Task.Run(() => service.Read(path));
+        Log($"Lex 解析完成: {entries.Count} 条。");
 
         EntryCountText.Text = entries.Count.ToString();
 
-        // 显示前 100 条记录作为预览
-        var preview = entries.Take(100)
-            .Select(e => $"{e.Pinyin} → {e.Phrase} (候选位置: {e.CandidateIndex})")
+        ShowLoading($"正在渲染 {entries.Count:N0} 条记录...");
+
+        var display = entries
+            .Select(e => $"{e.Pinyin} → {e.Phrase}  (候选位置: {e.CandidateIndex})")
             .ToList();
 
-        ContentView.ItemsSource = preview;
+        ContentView.ItemsSource = display;
+        ShowContent();
     }
 
     private async Task LoadIHFileAsync(string path)
     {
+        ShowLoading("正在解析输入历史...");
+
         var service = new IHFileService();
         var entries = await Task.Run(() => service.Read(path));
+        Log($"IH 解析完成: {entries.Count} 条。");
 
         EntryCountText.Text = entries.Count.ToString();
 
-        // 显示前 100 条记录作为预览
-        var preview = entries.Take(100)
-            .Select(e => $"{e.Word} (词频: {e.Frequency}, 时间戳: 0x{e.Timestamp:X8})")
+        ShowLoading($"正在渲染 {entries.Count:N0} 条记录...");
+
+        var display = entries
+            .Select(e => $"{e.Word}  (词频: {e.Frequency}, 时间戳: 0x{e.Timestamp:X8})")
             .ToList();
 
-        ContentView.ItemsSource = preview;
+        ContentView.ItemsSource = display;
+        ShowContent();
     }
 
     private async Task LoadUDLFileAsync(string path)
     {
+        ShowLoading("正在解析自学习词汇...");
+
         var service = new UDLFileService();
         var entries = await Task.Run(() => service.Read(path));
+        Log($"UDL 解析完成: {entries.Count} 条。");
 
         EntryCountText.Text = entries.Count.ToString();
 
-        // 显示前 100 条记录作为预览
-        var preview = entries.Take(100)
-            .Select(e => $"{e.Word} ({e.PinyinText}, 插入时间: 0x{e.Timestamp:X8})")
+        ShowLoading($"正在渲染 {entries.Count:N0} 条记录...");
+
+        var display = entries
+            .Select(e => $"{e.Word}  ({e.PinyinText}, 时间戳: 0x{e.Timestamp:X8})")
             .ToList();
 
-        ContentView.ItemsSource = preview;
+        ContentView.ItemsSource = display;
+        ShowContent();
     }
 
-    private void ShowUnknownFile(string path)
+    private void ShowLoading(string message)
     {
-        EntryCountText.Text = "未知";
-        ContentView.ItemsSource = new[] { "无法识别的文件格式" };
+        Log($"显示加载状态: {message}");
+        LoadingText.Text = message;
+        LoadingOverlay.Visibility = Visibility.Visible;
+        ErrorState.Visibility = Visibility.Collapsed;
+        EmptyState.Visibility = Visibility.Collapsed;
+        ContentView.Visibility = Visibility.Collapsed;
     }
 
-    private void ShowError(string message)
+    private void ShowContent()
     {
-        FileNameText.Text = "加载失败";
-        FileInfoText.Text = message;
-        FileTypeText.Text = "-";
-        FileSizeText.Text = "-";
-        EntryCountText.Text = "-";
-        ModifiedTimeText.Text = "-";
-        ShowEmptyState();
+        Log("显示内容视图。");
+        LoadingOverlay.Visibility = Visibility.Collapsed;
+        ErrorState.Visibility = Visibility.Collapsed;
+        EmptyState.Visibility = Visibility.Collapsed;
+        ContentView.Visibility = Visibility.Visible;
+    }
+
+    private void ShowError(string title, string message)
+    {
+        Log($"显示错误: {title} - {message}");
+        ErrorTitleText.Text = title;
+        ErrorMessageText.Text = message;
+        ErrorState.Visibility = Visibility.Visible;
+        LoadingOverlay.Visibility = Visibility.Collapsed;
+        EmptyState.Visibility = Visibility.Collapsed;
+        ContentView.Visibility = Visibility.Collapsed;
     }
 
     private void ShowEmptyState()
     {
+        Log("显示空状态。");
         EmptyState.Visibility = Visibility.Visible;
+        LoadingOverlay.Visibility = Visibility.Collapsed;
+        ErrorState.Visibility = Visibility.Collapsed;
         ContentView.Visibility = Visibility.Collapsed;
     }
 
-    private void HideEmptyState()
+    private void Log(string message)
     {
-        EmptyState.Visibility = Visibility.Collapsed;
-        ContentView.Visibility = Visibility.Visible;
+        var formatted = $"[ViewerPage#{GetHashCode()} {DateTime.Now:HH:mm:ss.fff}] {message}";
+        Debug.WriteLine(formatted);
+        Console.WriteLine(formatted);
     }
 
     private static string FormatFileSize(long bytes)
