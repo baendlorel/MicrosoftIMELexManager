@@ -14,73 +14,95 @@
         <viewmodels:IHViewModel x:Key="ViewModel"/>
     </Page.Resources>
 
-    <Grid Margin="{ThemeResource ContentDialogPadding}">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Toolbar -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
-            <!--
-            <Button Name="DeleteButton" Click="Delete_Click">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon Glyph="&#xE74D;"/>
-                    <TextBlock Text="删除选中"/>
-                </StackPanel>
-            </Button>
-            <Button Name="ResetFreqButton" Click="ResetFreq_Click">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon Glyph="&#xE895;"/>
-                    <TextBlock Text="重置词频"/>
-                </StackPanel>
-            </Button>
-            <Button Name="ClearAllFreqButton" Foreground="Red" Click="ClearAllFreq_Click">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon Glyph="&#xE7E8;"/>
-                    <TextBlock Text="一键清零词频"/>
-                </StackPanel>
-            </Button>
-            -->
-            <TextBlock Text="搜索：" VerticalAlignment="Center" Margin="16,0,4,0"/>
-            <TextBox Name="SearchBox" Width="200" Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="词语"/>
-        </StackPanel>
+        <Border Grid.Row="0"
+                Margin="0,0,0,12"
+                Padding="18,16"
+                CornerRadius="16"
+                BorderThickness="1"
+                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+            <StackPanel Spacing="4">
+                <TextBlock Text="输入历史" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                <TextBlock Text="查看微软拼音记录的输入历史、词频等级与对应时间。"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           TextWrapping="WrapWholeWords"/>
+            </StackPanel>
+        </Border>
 
-        <Grid Grid.Row="1" Margin="15,0,0,4">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="44"/>
-                <ColumnDefinition Width="200"/>
-                <ColumnDefinition Width="100"/>
-                <ColumnDefinition Width="150"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="1" Text="词语" Margin="8,4"/>
-            <TextBlock Grid.Column="2" Text="词频 (1-4)" Margin="8,4"/>
-            <TextBlock Grid.Column="3" Text="时间" Margin="8,4"/>
-        </Grid>
+        <Border Grid.Row="1"
+                Margin="0,0,0,12"
+                Padding="14"
+                CornerRadius="14"
+                BorderThickness="1"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="当前页面仅用于展示输入历史内容。"
+                           VerticalAlignment="Center"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           Margin="0,0,16,0"/>
+                <TextBlock Text="搜索" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                <TextBox Name="SearchBox" Width="240" Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="按词语筛选"/>
+            </StackPanel>
+        </Border>
 
-        <!-- Data Grid -->
-        <ListView Grid.Row="2" Name="IHListView"
-                  ItemsSource="{x:Bind ViewModel.FilteredEntries, Mode=OneWay}"
-                  SelectionMode="Extended"
-                  HorizontalAlignment="Stretch">
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="models:IHEntry">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="44"/>
-                            <ColumnDefinition Width="200"/>
-                            <ColumnDefinition Width="100"/>
-                            <ColumnDefinition Width="150"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding DisplayIndex}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="4,4,9,4" Foreground="Gray"/>
-                        <TextBlock Grid.Column="1" Text="{Binding Word}" VerticalAlignment="Center" Margin="4" IsTextSelectionEnabled="True"/>
-                        <!-- <Slider Grid.Column="2" Value="{Binding Frequency, Mode=TwoWay}" Minimum="1" Maximum="4" TickFrequency="1" SnapsTo="Ticks" Margin="4" VerticalAlignment="Center"/> -->
-                        <TextBlock Grid.Column="2" Text="{Binding Frequency}" VerticalAlignment="Center" Margin="4" Foreground="Gray"/>
-                        <TextBlock Grid.Column="3" Text="{Binding FormattedTimestamp}" VerticalAlignment="Center" Margin="4" Foreground="Gray"/>
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+        <Border Grid.Row="2"
+                Padding="0"
+                CornerRadius="16"
+                BorderThickness="1"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="15,12,12,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="44"/>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="170"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="1" Text="词语" Margin="8,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                    <TextBlock Grid.Column="2" Text="词频 (1-4)" Margin="8,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                    <TextBlock Grid.Column="3" Text="时间" Margin="8,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                </Grid>
+
+                <ListView Grid.Row="1"
+                          Name="IHListView"
+                          ItemsSource="{x:Bind ViewModel.FilteredEntries, Mode=OneWay}"
+                          SelectionMode="Extended"
+                          HorizontalAlignment="Stretch"
+                          Background="Transparent"
+                          BorderThickness="0">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="models:IHEntry">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="44"/>
+                                    <ColumnDefinition Width="200"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="170"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding DisplayIndex}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="4,4,9,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Word}" VerticalAlignment="Center" Margin="4" IsTextSelectionEnabled="True"/>
+                                <!-- <Slider Grid.Column="2" Value="{Binding Frequency, Mode=TwoWay}" Minimum="1" Maximum="4" TickFrequency="1" SnapsTo="Ticks" Margin="4" VerticalAlignment="Center"/> -->
+                                <TextBlock Grid.Column="2" Text="{Binding Frequency}" VerticalAlignment="Center" Margin="4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                <TextBlock Grid.Column="3" Text="{Binding FormattedTimestamp}" VerticalAlignment="Center" Margin="4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+        </Border>
     </Grid>
 </Page>

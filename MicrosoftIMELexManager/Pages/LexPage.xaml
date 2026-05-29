@@ -15,94 +15,132 @@
         <viewmodels:LexViewModel x:Key="ViewModel"/>
     </Page.Resources>
 
-    <Grid Margin="{ThemeResource ContentDialogPadding}">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Toolbar -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
-            <Button Name="AddNewButton" Click="AddNew_Click">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon Glyph="&#xE710;"/>
-                    <TextBlock Text="新增词条"/>
-                </StackPanel>
-            </Button>
-            <Button Name="DeleteButton" Click="Delete_Click">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon Glyph="&#xE74D;"/>
-                    <TextBlock Text="删除选中"/>
-                </StackPanel>
-            </Button>
-            <Button Name="ImportButton" Click="Import_Click">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon Glyph="&#xE8B5;"/>
-                    <TextBlock Text="导入"/>
-                </StackPanel>
-            </Button>
-            <Button Name="ExportButton" Click="Export_Click">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon Glyph="&#xE8C7;"/>
-                    <TextBlock Text="导出"/>
-                </StackPanel>
-            </Button>
-            <TextBlock Text="搜索：" VerticalAlignment="Center" Margin="16,0,4,0"/>
-            <TextBox Name="SearchBox" Width="200" Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="拼音或词语"/>
-        </StackPanel>
+        <Border Grid.Row="0"
+                Margin="0,0,0,12"
+                Padding="18,16"
+                CornerRadius="16"
+                BorderThickness="1"
+                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+            <StackPanel Spacing="4">
+                <TextBlock Text="自定义短语" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                <TextBlock Text="管理拼音、词语和候选位置，适合整理常用短语导入导出。"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           TextWrapping="WrapWholeWords"/>
+            </StackPanel>
+        </Border>
 
-        <Grid Grid.Row="1" Margin="15,0,0,4">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="44"/>
-                <ColumnDefinition Width="150"/>
-                <ColumnDefinition Width="300"/>
-                <ColumnDefinition Width="120"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="1" Text="拼音" Margin="8,4"/>
-            <TextBlock Grid.Column="2" Text="词语" Margin="8,4"/>
-            <TextBlock Grid.Column="3" Text="候选位置" Margin="8,4"/>
-        </Grid>
+        <Border Grid.Row="1"
+                Margin="0,0,0,12"
+                Padding="14"
+                CornerRadius="14"
+                BorderThickness="1"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Name="AddNewButton" Click="AddNew_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE710;"/>
+                        <TextBlock Text="新增词条"/>
+                    </StackPanel>
+                </Button>
+                <Button Name="DeleteButton" Click="Delete_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE74D;"/>
+                        <TextBlock Text="删除选中"/>
+                    </StackPanel>
+                </Button>
+                <Button Name="ImportButton" Click="Import_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE8B5;"/>
+                        <TextBlock Text="导入"/>
+                    </StackPanel>
+                </Button>
+                <Button Name="ExportButton" Click="Export_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE8C7;"/>
+                        <TextBlock Text="导出"/>
+                    </StackPanel>
+                </Button>
+                <TextBlock Text="搜索" VerticalAlignment="Center" Margin="16,0,0,0" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                <TextBox Name="SearchBox" Width="260" Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="按拼音或词语筛选"/>
+            </StackPanel>
+        </Border>
 
-        <!-- Data Grid -->
-        <ListView Grid.Row="2" Name="LexListView"
-                  ItemsSource="{x:Bind ViewModel.FilteredEntries, Mode=OneWay}"
-                  SelectionMode="Extended"
-                  HorizontalAlignment="Stretch">
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="models:LexEntry">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="44"/>
-                            <ColumnDefinition Width="150"/>
-                            <ColumnDefinition Width="300"/>
-                            <ColumnDefinition Width="120"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding DisplayIndex}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="4,4,9,4" Foreground="Gray"/>
-                        <TextBox Grid.Column="1" Text="{Binding Pinyin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4"/>
-                        <TextBox Grid.Column="2" Text="{Binding Phrase, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4"/>
-                        <DropDownButton Grid.Column="3"
-                                        Content="{Binding CandidateIndex}"
-                                        Width="80"
-                                        HorizontalAlignment="Left"
-                                        Margin="4">
-                            <DropDownButton.Flyout>
-                                <MenuFlyout>
-                                    <MenuFlyoutItem Text="1" Tag="1" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
-                                    <MenuFlyoutItem Text="2" Tag="2" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
-                                    <MenuFlyoutItem Text="3" Tag="3" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
-                                    <MenuFlyoutItem Text="4" Tag="4" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
-                                    <MenuFlyoutItem Text="5" Tag="5" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
-                                    <MenuFlyoutItem Text="6" Tag="6" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
-                                    <MenuFlyoutItem Text="7" Tag="7" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
-                                    <MenuFlyoutItem Text="8" Tag="8" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
-                                    <MenuFlyoutItem Text="9" Tag="9" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
-                                </MenuFlyout>
-                            </DropDownButton.Flyout>
-                        </DropDownButton>
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+        <Border Grid.Row="2"
+                Padding="0"
+                CornerRadius="16"
+                BorderThickness="1"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="15,12,12,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="44"/>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="300"/>
+                        <ColumnDefinition Width="160"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="1" Text="拼音" Margin="8,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                    <TextBlock Grid.Column="2" Text="词语" Margin="8,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                    <TextBlock Grid.Column="3" Text="候选位置" Margin="8,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                </Grid>
+
+                <ListView Grid.Row="1"
+                          Name="LexListView"
+                          ItemsSource="{x:Bind ViewModel.FilteredEntries, Mode=OneWay}"
+                          SelectionMode="Extended"
+                          HorizontalAlignment="Stretch"
+                          Background="Transparent"
+                          BorderThickness="0">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="models:LexEntry">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="44"/>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="300"/>
+                                    <ColumnDefinition Width="160"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding DisplayIndex}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="4,4,9,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                <TextBox Grid.Column="1" Text="{Binding Pinyin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4"/>
+                                <TextBox Grid.Column="2" Text="{Binding Phrase, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4"/>
+                                <DropDownButton Grid.Column="3"
+                                                Content="{Binding CandidateIndex}"
+                                                Width="112"
+                                                HorizontalAlignment="Left"
+                                                Margin="4">
+                                    <DropDownButton.Flyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Text="1" Tag="1" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
+                                            <MenuFlyoutItem Text="2" Tag="2" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
+                                            <MenuFlyoutItem Text="3" Tag="3" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
+                                            <MenuFlyoutItem Text="4" Tag="4" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
+                                            <MenuFlyoutItem Text="5" Tag="5" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
+                                            <MenuFlyoutItem Text="6" Tag="6" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
+                                            <MenuFlyoutItem Text="7" Tag="7" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
+                                            <MenuFlyoutItem Text="8" Tag="8" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
+                                            <MenuFlyoutItem Text="9" Tag="9" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
+                                        </MenuFlyout>
+                                    </DropDownButton.Flyout>
+                                </DropDownButton>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+        </Border>
     </Grid>
 </Page>
