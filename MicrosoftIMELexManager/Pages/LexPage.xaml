@@ -81,19 +81,23 @@
                         <TextBlock Grid.Column="0" Text="{Binding DisplayIndex}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="4,4,9,4" Foreground="Gray"/>
                         <TextBox Grid.Column="1" Text="{Binding Pinyin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4"/>
                         <TextBox Grid.Column="2" Text="{Binding Phrase, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4"/>
-                        <ComboBox Grid.Column="3"
-                                  SelectedItem="{Binding CandidateIndex, Mode=TwoWay}"
-                                  Margin="4">
-                            <x:Int32>1</x:Int32>
-                            <x:Int32>2</x:Int32>
-                            <x:Int32>3</x:Int32>
-                            <x:Int32>4</x:Int32>
-                            <x:Int32>5</x:Int32>
-                            <x:Int32>6</x:Int32>
-                            <x:Int32>7</x:Int32>
-                            <x:Int32>8</x:Int32>
-                            <x:Int32>9</x:Int32>
-                        </ComboBox>
+                        <DropDownButton Grid.Column="3"
+                                        Content="{Binding CandidateIndex}"
+                                        Margin="4">
+                            <DropDownButton.Flyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="1" Tag="1" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
+                                    <MenuFlyoutItem Text="2" Tag="2" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
+                                    <MenuFlyoutItem Text="3" Tag="3" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
+                                    <MenuFlyoutItem Text="4" Tag="4" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
+                                    <MenuFlyoutItem Text="5" Tag="5" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
+                                    <MenuFlyoutItem Text="6" Tag="6" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
+                                    <MenuFlyoutItem Text="7" Tag="7" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
+                                    <MenuFlyoutItem Text="8" Tag="8" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
+                                    <MenuFlyoutItem Text="9" Tag="9" CommandParameter="{x:Bind}" Click="CandidateIndexMenuItem_Click"/>
+                                </MenuFlyout>
+                            </DropDownButton.Flyout>
+                        </DropDownButton>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>

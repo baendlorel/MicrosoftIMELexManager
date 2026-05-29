@@ -1,17 +1,23 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+
 namespace MicrosoftIMELexManager.Models;
 
-public sealed class LexEntry
+public sealed partial class LexEntry : ObservableObject
 {
-    public string DisplayIndex { get; set; } = string.Empty;
+    [ObservableProperty]
+    private string _displayIndex = string.Empty;
 
-    public string Pinyin { get; set; } = string.Empty;
+    [ObservableProperty]
+    private string _pinyin = string.Empty;
 
-    public string Phrase { get; set; } = string.Empty;
+    [ObservableProperty]
+    private string _phrase = string.Empty;
 
     /// <summary>
     /// Candidate position index (1-9). 1 = highest priority.
     /// </summary>
-    public int CandidateIndex { get; set; } = 1;
+    [ObservableProperty]
+    private int _candidateIndex = 1;
 
     public override string ToString() => $"{Pinyin} → {Phrase} (pos={CandidateIndex})";
 }

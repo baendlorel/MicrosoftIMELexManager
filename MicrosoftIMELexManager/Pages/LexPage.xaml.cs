@@ -32,6 +32,22 @@ public sealed partial class LexPage : Page
         }
     }
 
+    private void CandidateIndexMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuFlyoutItem { CommandParameter: LexEntry entry, Tag: string tag })
+        {
+            return;
+        }
+
+        if (!int.TryParse(tag, out int candidateIndex))
+        {
+            return;
+        }
+
+        entry.CandidateIndex = candidateIndex;
+        ViewModel.IsModified = true;
+    }
+
     private async void Import_Click(object sender, RoutedEventArgs e)
     {
         // TODO: 实现导入功能
