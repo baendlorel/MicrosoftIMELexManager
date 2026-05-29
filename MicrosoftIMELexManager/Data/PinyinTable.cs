@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace MicrosoftIMELexManager.Data;
@@ -96,6 +97,8 @@ public static class PinyinTable
         "zui", "zun", "zuo",
     ];
 
+    private static readonly Dictionary<string, short> EntryIndices = BuildEntryIndices();
+
     /// <summary>
     /// Decode a pinyin index to its string representation.
     /// Returns the raw index as string if out of range.
@@ -111,5 +114,48 @@ public static class PinyinTable
     public static string DecodeAll(ReadOnlySpan<short> indices)
     {
         return string.Join(" ", indices.ToArray().Select(i => Decode(i)));
+    }
+
+    public static short Encode(string syllable)
+    {
+        var normalized = NormalizeSyllable(syllable);
+        if (EntryIndices.TryGetValue(normalized, out var index))
+        {
+            return index;
+        }
+
+        throw new ArgumentException($"不支持的拼音音节: {syllable}", nameof(syllable));
+    }
+
+    public static short[] EncodeAll(string pinyinText)
+    {
+        if (string.IsNullOrWhiteSpace(pinyinText))
+        {
+            return Array.Empty<short>();
+        }
+
+        return pinyinText
+            .Split([' ', '\t', '\r', '\n', '\'', '-'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(Encode)
+            .ToArray();
+    }
+
+    private static Dictionary<string, short> BuildEntryIndices()
+    {
+        var result = new Dictionary<string, short>(Entries.Length, StringComparer.OrdinalIgnoreCase);
+        for (short i = 0; i < Entries.Length; i++)
+        {
+            result[Entries[i]] = i;
+        }
+
+        return result;
+    }
+
+    private static string NormalizeSyllable(string syllable)
+    {
+        return syllable.Trim()
+            .ToLowerInvariant()
+            .Replace("ü", "v", StringComparison.Ordinal)
+            .Replace("u:", "v", StringComparison.Ordinal);
     }
 }

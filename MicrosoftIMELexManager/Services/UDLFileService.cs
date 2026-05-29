@@ -2,6 +2,7 @@ using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using MicrosoftIMELexManager.Data;
 using MicrosoftIMELexManager.Models;
@@ -15,6 +16,9 @@ public sealed class UDLFileService
     private const int DataStart = 0x2400;
     private const int RecordSize = 60;
     private const int MaxWordLength = 12;
+    private const int WordLengthOffset = 0x0A;
+    private const int MarkerOffset = 0x0B;
+    private const int ContentOffset = 0x0C;
     private const byte ValidMarker = 0x5A;
 
     public List<UDLEntry> Read(string path)
@@ -32,16 +36,16 @@ public sealed class UDLFileService
             if (off + RecordSize > data.Length) break;
 
             // Check valid marker
-            if (data[off + 0x0B] != ValidMarker) continue;
+            if (data[off + MarkerOffset] != ValidMarker) continue;
 
-            byte wordLen = data[off + 0x0A];
+            byte wordLen = data[off + WordLengthOffset];
             if (wordLen == 0 || wordLen > MaxWordLength) continue;
 
             uint timestamp = BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan(off));
-            string word = Encoding.Unicode.GetString(data, off + 0x0C, wordLen * 2);
+            string word = Encoding.Unicode.GetString(data, off + ContentOffset, wordLen * 2);
 
             // Pinyin indices start after the word
-            int pinyinStart = off + 0x0C + wordLen * 2;
+            int pinyinStart = off + ContentOffset + wordLen * 2;
             var pinyinIndices = new short[wordLen];
             for (int j = 0; j < wordLen; j++)
             {
@@ -64,28 +68,69 @@ public sealed class UDLFileService
         return entries;
     }
 
-    /// <summary>
-    /// Delete entries by setting their Marker byte (offset +0x0B) from 0x5A to 0x00.
-    /// </summary>
-    public void DeleteEntries(string sourcePath, string destPath, HashSet<int> recordIndices)
+    public void Write(string sourcePath, string destPath, IReadOnlyCollection<UDLEntry> entries, IReadOnlySet<int> deletedRecordIndices)
     {
         var data = File.ReadAllBytes(sourcePath);
 
         ValidateHeader(data);
 
-        foreach (int idx in recordIndices)
-        {
-            int off = DataStart + idx * RecordSize;
-            if (off + 0x0B >= data.Length) continue;
+        var entryMap = entries.ToDictionary(entry => entry.RecordIndex);
+        uint wordCount = BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan(0x0C));
 
-            // Only mark as deleted if currently valid
-            if (data[off + 0x0B] == ValidMarker)
+        for (int i = 0; i < wordCount; i++)
+        {
+            int off = DataStart + i * RecordSize;
+            if (off + RecordSize > data.Length)
             {
-                data[off + 0x0B] = 0x00;
+                break;
             }
+
+            if (deletedRecordIndices.Contains(i))
+            {
+                Array.Clear(data, off, RecordSize);
+                continue;
+            }
+
+            if (!entryMap.TryGetValue(i, out var entry))
+            {
+                continue;
+            }
+
+            WriteRecord(data, off, entry);
         }
 
         File.WriteAllBytes(destPath, data);
+    }
+
+    private static void WriteRecord(byte[] data, int offset, UDLEntry entry)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+
+        var word = entry.Word.Trim();
+        if (word.Length == 0 || word.Length > MaxWordLength)
+        {
+            throw new InvalidDataException($"UDL 词语长度必须在 1 到 {MaxWordLength} 个字符之间: {entry.Word}");
+        }
+
+        var pinyinIndices = PinyinTable.EncodeAll(entry.PinyinText);
+        if (pinyinIndices.Length != word.Length)
+        {
+            throw new InvalidDataException($"词语“{word}”的拼音音节数必须与字符数一致。当前字符数={word.Length}，拼音数={pinyinIndices.Length}");
+        }
+
+        Array.Clear(data, offset, RecordSize);
+
+        BinaryPrimitives.WriteUInt32LittleEndian(data.AsSpan(offset), entry.Timestamp);
+        data[offset + WordLengthOffset] = (byte)word.Length;
+        data[offset + MarkerOffset] = ValidMarker;
+
+        Encoding.Unicode.GetBytes(word, data.AsSpan(offset + ContentOffset, word.Length * 2));
+
+        int pinyinStart = offset + ContentOffset + word.Length * 2;
+        for (int i = 0; i < pinyinIndices.Length; i++)
+        {
+            BinaryPrimitives.WriteInt16LittleEndian(data.AsSpan(pinyinStart + i * 2, 2), pinyinIndices[i]);
+        }
     }
 
     private static void ValidateHeader(byte[] data)

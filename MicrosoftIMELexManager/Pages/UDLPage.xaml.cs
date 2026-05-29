@@ -20,4 +20,14 @@ public sealed partial class UDLPage : Page
             ViewModel.DeleteSelectedCommand.Execute(UDLListView.SelectedItems);
         }
     }
+
+    private void EditableField_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        ViewModel.MarkModified();
+    }
+
+    private void EditableField_LostFocus(object sender, RoutedEventArgs e)
+    {
+        ViewModel.RefreshAfterEdit();
+    }
 }

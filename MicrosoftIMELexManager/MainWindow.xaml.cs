@@ -231,12 +231,14 @@ public sealed partial class MainWindow : Window
         {
             var createdBackupFiles = new List<string>();
             var existingBackupFiles = new List<string>();
+            var savedLibraries = new List<string>();
 
             if (_lexPage != null && _lexPage.ViewModel.IsModified && HasLibrary(LexLibraryKey))
             {
                 var lexFile = Path.Combine(_currentFolderPath, "ChsPinyinEUDPv1.lex");
                 TrackBackupState(lexFile, createdBackupFiles, existingBackupFiles);
                 await _lexPage.ViewModel.SaveAsync(lexFile);
+                savedLibraries.Add("自定义短语");
             }
 
             if (_ihPage != null && _ihPage.ViewModel.IsModified && HasLibrary(IHLibraryKey))
@@ -244,6 +246,7 @@ public sealed partial class MainWindow : Window
                 var ihFile = Path.Combine(_currentFolderPath, "ChsPinyinIH.dat");
                 TrackBackupState(ihFile, createdBackupFiles, existingBackupFiles);
                 await _ihPage.ViewModel.SaveAsync(ihFile);
+                savedLibraries.Add("输入历史");
             }
 
             if (_udlPage != null && _udlPage.ViewModel.IsModified && HasLibrary(UDLLibraryKey))
@@ -251,9 +254,14 @@ public sealed partial class MainWindow : Window
                 var udlFile = Path.Combine(_currentFolderPath, "ChsPinyinUDL.dat");
                 TrackBackupState(udlFile, createdBackupFiles, existingBackupFiles);
                 await _udlPage.ViewModel.SaveAsync(udlFile);
+                savedLibraries.Add("自学习词汇");
             }
 
             var message = "所有修改已保存";
+            if (savedLibraries.Count > 0)
+            {
+                message += $"\n\n本次已写入: {string.Join("、", savedLibraries)}";
+            }
             if (createdBackupFiles.Count > 0)
             {
                 message += $"\n\n已创建备份文件:\n{string.Join("\n", createdBackupFiles.Select(Path.GetFileName))}";
@@ -264,14 +272,31 @@ public sealed partial class MainWindow : Window
                 message += $"\n\n以下备份已存在，未重复创建:\n{string.Join("\n", existingBackupFiles.Select(Path.GetFileName).Distinct())}";
             }
 
+            message += "\n\n若微软拼音仍显示旧词库，通常是因为 TextInputHost/ctfmon 仍在缓存旧数据。可立即刷新输入法，或手动切换输入法/注销后再试。";
+
             var dialog = new ContentDialog
             {
                 Title = "保存成功",
                 Content = message,
-                CloseButtonText = "确定",
+                PrimaryButtonText = "刷新输入法",
+                CloseButtonText = "稍后",
+                DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = Content.XamlRoot
             };
-            await dialog.ShowAsync();
+            var dialogResult = await dialog.ShowAsync();
+
+            if (dialogResult == ContentDialogResult.Primary)
+            {
+                var refreshResult = BackupService.RefreshIME();
+                var refreshDialog = new ContentDialog
+                {
+                    Title = refreshResult.Success ? "输入法已刷新" : "输入法刷新失败",
+                    Content = refreshResult.Message,
+                    CloseButtonText = "确定",
+                    XamlRoot = Content.XamlRoot
+                };
+                await refreshDialog.ShowAsync();
+            }
         }
         catch (Exception ex)
         {

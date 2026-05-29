@@ -1,6 +1,7 @@
 using System;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace MicrosoftIMELexManager.Services;
 
@@ -80,6 +81,56 @@ public static class BackupService
         }
 
         return false;
+    }
+
+    public static (bool Success, string Message) RefreshIME()
+    {
+        var stoppedProcesses = new System.Collections.Generic.List<string>();
+
+        try
+        {
+            foreach (var processName in new[] { "TextInputHost", "ctfmon" })
+            {
+                foreach (var process in Process.GetProcessesByName(processName))
+                {
+                    try
+                    {
+                        var displayName = $"{process.ProcessName}({process.Id})";
+                        process.Kill(entireProcessTree: false);
+                        process.WaitForExit(3000);
+                        stoppedProcesses.Add(displayName);
+                    }
+                    catch
+                    {
+                    }
+                    finally
+                    {
+                        process.Dispose();
+                    }
+                }
+            }
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "ctfmon.exe",
+                UseShellExecute = true
+            };
+
+            using var restarted = Process.Start(startInfo);
+            var stoppedSummary = stoppedProcesses.Count > 0
+                ? $"已停止: {string.Join(", ", stoppedProcesses.Distinct())}。"
+                : "未检测到可终止的输入法进程。";
+
+            return (true, $"{stoppedSummary} 已重新启动 ctfmon.exe，请切换一次输入法后重试。");
+        }
+        catch (Exception ex)
+        {
+            var stoppedSummary = stoppedProcesses.Count > 0
+                ? $"已停止部分进程: {string.Join(", ", stoppedProcesses.Distinct())}。"
+                : "未能停止输入法相关进程。";
+
+            return (false, $"{stoppedSummary} 刷新输入法失败：{ex.Message}");
+        }
     }
 
     /// <summary>

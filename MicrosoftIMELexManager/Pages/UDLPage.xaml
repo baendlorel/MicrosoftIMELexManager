@@ -17,6 +17,7 @@
     <Grid Margin="{ThemeResource ContentDialogPadding}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -32,8 +33,13 @@
             <TextBox Name="SearchBox" Width="200" Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="词语或拼音"/>
         </StackPanel>
 
+        <TextBlock Grid.Row="1"
+                   Margin="0,0,0,12"
+                   Foreground="Gray"
+                   Text="可直接编辑词语和拼音；拼音请按空格分隔，且音节数需与字数一致。"/>
+
         <!-- Data Grid -->
-        <ListView Grid.Row="1" Name="UDLListView"
+        <ListView Grid.Row="2" Name="UDLListView"
                   ItemsSource="{x:Bind ViewModel.FilteredEntries, Mode=OneWay}"
                   SelectionMode="Extended"
                   HorizontalAlignment="Stretch">
@@ -60,8 +66,8 @@
                             <ColumnDefinition Width="150"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="{Binding DisplayIndex}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="4,4,9,4" Foreground="Gray"/>
-                        <TextBlock Grid.Column="1" Text="{Binding Word}" VerticalAlignment="Center" Margin="4" IsTextSelectionEnabled="True"/>
-                        <TextBlock Grid.Column="2" Text="{Binding PinyinText}" VerticalAlignment="Center" Margin="4" Foreground="Gray" IsTextSelectionEnabled="True"/>
+                        <TextBox Grid.Column="1" Text="{Binding Word, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4" TextChanged="EditableField_TextChanged" LostFocus="EditableField_LostFocus"/>
+                        <TextBox Grid.Column="2" Text="{Binding PinyinText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4" Foreground="Gray" TextChanged="EditableField_TextChanged" LostFocus="EditableField_LostFocus"/>
                         <TextBlock Grid.Column="3" Text="{Binding Timestamp}" VerticalAlignment="Center" Margin="4" Foreground="DarkGray"/>
                     </Grid>
                 </DataTemplate>

@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -49,15 +48,7 @@ public partial class UDLViewModel : ObservableObject
     [RelayCommand]
     public async Task SaveAsync(string path)
     {
-        if (_indicesToDelete.Count > 0)
-        {
-            await Task.Run(() => _service.DeleteEntries(_filePath, path, _indicesToDelete));
-        }
-        else
-        {
-            // No deletions, just copy the file
-            await Task.Run(() => File.Copy(_filePath, path, true));
-        }
+        await Task.Run(() => _service.Write(_filePath, path, AllEntries.ToList(), _indicesToDelete));
         _filePath = path;
         _indicesToDelete.Clear();
         IsModified = false;
@@ -77,6 +68,18 @@ public partial class UDLViewModel : ObservableObject
             _indicesToDelete.Add(item.RecordIndex);
         }
 
+        ApplyFilter();
+        IsModified = true;
+    }
+
+    [RelayCommand]
+    public void MarkModified()
+    {
+        IsModified = true;
+    }
+
+    public void RefreshAfterEdit()
+    {
         ApplyFilter();
         IsModified = true;
     }
