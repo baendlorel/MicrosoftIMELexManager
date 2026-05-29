@@ -2,6 +2,8 @@ namespace MicrosoftIMELexManager.Models;
 
 public sealed class UDLEntry
 {
+    public const int UnassignedRecordIndex = -1;
+
     public string DisplayIndex { get; set; } = string.Empty;
 
     public string Word { get; set; } = string.Empty;
@@ -19,7 +21,9 @@ public sealed class UDLEntry
     /// <summary>
     /// 0-based index of this record in the file (needed for delete).
     /// </summary>
-    public int RecordIndex { get; set; }
+    public int RecordIndex { get; set; } = UnassignedRecordIndex;
+
+    public bool IsNew => RecordIndex == UnassignedRecordIndex;
 
     public override string ToString() => $"{Word} ({PinyinText}) ts=0x{Timestamp:X8}";
 }

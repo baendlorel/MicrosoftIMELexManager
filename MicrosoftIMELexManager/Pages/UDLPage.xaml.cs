@@ -13,6 +13,11 @@ public sealed partial class UDLPage : Page
         InitializeComponent();
     }
 
+    private void AddNew_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.AddNew();
+    }
+
     private void Delete_Click(object sender, RoutedEventArgs e)
     {
         if (UDLListView.SelectedItems.Count > 0)

@@ -74,8 +74,12 @@ public sealed class UDLFileService
 
         ValidateHeader(data);
 
-        var entryMap = entries.ToDictionary(entry => entry.RecordIndex);
         uint wordCount = BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan(0x0C));
+        var assignedEntries = entries
+            .Where(entry => !entry.IsNew)
+            .ToDictionary(entry => entry.RecordIndex);
+        var newEntries = entries.Where(entry => entry.IsNew).ToList();
+        var reusableSlots = new Queue<int>();
 
         for (int i = 0; i < wordCount; i++)
         {
@@ -88,10 +92,17 @@ public sealed class UDLFileService
             if (deletedRecordIndices.Contains(i))
             {
                 Array.Clear(data, off, RecordSize);
+                reusableSlots.Enqueue(i);
                 continue;
             }
 
-            if (!entryMap.TryGetValue(i, out var entry))
+            if (data[off + MarkerOffset] != ValidMarker)
+            {
+                reusableSlots.Enqueue(i);
+                continue;
+            }
+
+            if (!assignedEntries.TryGetValue(i, out var entry))
             {
                 continue;
             }
@@ -99,7 +110,49 @@ public sealed class UDLFileService
             WriteRecord(data, off, entry);
         }
 
+        foreach (var entry in newEntries)
+        {
+            int recordIndex;
+            if (reusableSlots.Count > 0)
+            {
+                recordIndex = reusableSlots.Dequeue();
+            }
+            else
+            {
+                recordIndex = checked((int)wordCount);
+                wordCount++;
+                EnsureCapacity(ref data, wordCount);
+            }
+
+            var entryToWrite = new UDLEntry
+            {
+                DisplayIndex = entry.DisplayIndex,
+                Word = entry.Word,
+                PinyinText = entry.PinyinText,
+                Timestamp = entry.Timestamp == 0 ? CreateTimestamp() : entry.Timestamp,
+                RecordIndex = recordIndex,
+            };
+
+            WriteRecord(data, DataStart + recordIndex * RecordSize, entryToWrite);
+        }
+
+        BinaryPrimitives.WriteUInt32LittleEndian(data.AsSpan(0x0C), wordCount);
+
         File.WriteAllBytes(destPath, data);
+    }
+
+    private static void EnsureCapacity(ref byte[] data, uint wordCount)
+    {
+        int requiredLength = checked(DataStart + (int)wordCount * RecordSize);
+        if (requiredLength > data.Length)
+        {
+            Array.Resize(ref data, requiredLength);
+        }
+    }
+
+    private static uint CreateTimestamp()
+    {
+        return unchecked((uint)DateTime.UtcNow.Ticks);
     }
 
     private static void WriteRecord(byte[] data, int offset, UDLEntry entry)

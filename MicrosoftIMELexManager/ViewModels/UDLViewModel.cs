@@ -49,9 +49,23 @@ public partial class UDLViewModel : ObservableObject
     public async Task SaveAsync(string path)
     {
         await Task.Run(() => _service.Write(_filePath, path, AllEntries.ToList(), _indicesToDelete));
-        _filePath = path;
-        _indicesToDelete.Clear();
-        IsModified = false;
+        await LoadAsync(path);
+    }
+
+    [RelayCommand]
+    public void AddNew()
+    {
+        var newEntry = new UDLEntry
+        {
+            Word = "新词",
+            PinyinText = "xin ci",
+            Timestamp = 0,
+            RecordIndex = UDLEntry.UnassignedRecordIndex,
+        };
+
+        AllEntries.Insert(0, newEntry);
+        ApplyFilter();
+        IsModified = true;
     }
 
     [RelayCommand]
