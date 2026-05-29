@@ -14,7 +14,7 @@ public sealed class UDLEntry
     public string PinyinText { get; set; } = string.Empty;
 
     /// <summary>
-    /// Timestamp (lower 32 bits of .NET DateTime.Ticks).
+    /// Timestamp in seconds since 2000-01-01 00:00:00 UTC.
     /// </summary>
     public uint Timestamp { get; set; }
 

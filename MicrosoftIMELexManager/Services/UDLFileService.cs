@@ -152,7 +152,7 @@ public sealed class UDLFileService
 
     private static uint CreateTimestamp()
     {
-        return unchecked((uint)DateTime.UtcNow.Ticks);
+        return MicrosoftImeTimestamp.GetCurrentSecondsSinceEpoch2000();
     }
 
     private static void WriteRecord(byte[] data, int offset, UDLEntry entry)
