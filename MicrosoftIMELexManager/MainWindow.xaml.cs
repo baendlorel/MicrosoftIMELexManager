@@ -27,7 +27,6 @@ public sealed partial class MainWindow : Window
 
     private FrameworkElement RootElement => (FrameworkElement)Content;
     private ListBox LibraryListBoxControl => (ListBox)RootElement.FindName("LibraryListBox");
-    private TextBlock LibraryListHintTextControl => (TextBlock)RootElement.FindName("LibraryListHintText");
     private Border EmptyContentStateControl => (Border)RootElement.FindName("EmptyContentState");
 
     private sealed class LibraryItem
@@ -152,12 +151,10 @@ public sealed partial class MainWindow : Window
 
             if (_libraryItems.Count > 0)
             {
-                LibraryListHintTextControl.Text = "点击左侧词库名称即可切换查看和编辑。";
                 LibraryListBoxControl.SelectedIndex = 0;
             }
             else
             {
-                LibraryListHintTextControl.Text = "该文件夹下未找到可加载的词库文件。";
                 LibraryListBoxControl.SelectedItem = null;
                 ShowEmptyState();
                 await ShowErrorDialog("未找到词库", "该文件夹下未找到可加载的词库文件。\n\n目前支持：ChsPinyinEUDPv1.lex、ChsPinyinIH.dat、ChsPinyinUDL.dat");
