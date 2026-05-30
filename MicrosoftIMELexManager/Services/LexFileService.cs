@@ -147,7 +147,7 @@ public sealed class LexFileService
 
         writer.Write(phraseCount);                       // 0x1C: PhraseCount
         writer.Write(MicrosoftImeTimestamp.GetCurrentSecondsSinceEpoch2000()); // 0x20: Timestamp
-        writer.Write(new byte[32]);                      // 0x24: Reserved (32 bytes)
+        writer.Write(new byte[28]);                      // 0x24: Reserved (28 bytes, ends at 0x40 = OffsetTableStart)
 
         // Write offset table (phraseCount entries)
         uint cumulativeOffset = 0;

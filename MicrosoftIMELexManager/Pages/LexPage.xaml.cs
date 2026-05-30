@@ -54,15 +54,142 @@ public sealed partial class LexPage : Page
 
     private async void Import_Click(object sender, RoutedEventArgs e)
     {
-        // TODO: 实现导入功能
-        var dialog = new ContentDialog
+        try
         {
-            Title = "导入词条",
-            Content = "导入功能即将推出",
-            CloseButtonText = "确定",
-            XamlRoot = XamlRoot
-        };
-        await dialog.ShowAsync();
+            var filePicker = new FileOpenPicker();
+            if (App.MainWindow is not null)
+            {
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+                WinRT.Interop.InitializeWithWindow.Initialize(filePicker, hwnd);
+            }
+
+            filePicker.ViewMode = PickerViewMode.List;
+            filePicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+            filePicker.FileTypeFilter.Add(".csv");
+
+            var file = await filePicker.PickSingleFileAsync();
+            if (file is null) return;
+
+            var text = await FileIO.ReadTextAsync(file, Windows.Storage.Streams.UnicodeEncoding.Utf8);
+            var rows = ParseCsv(text);
+
+            if (rows.Count == 0)
+            {
+                var emptyDialog = new ContentDialog
+                {
+                    Title = "导入失败",
+                    Content = "CSV 文件中未找到有效数据。请确保文件包含「拼音,词语,候选词位置」格式的行。",
+                    CloseButtonText = "确定",
+                    XamlRoot = XamlRoot
+                };
+                await emptyDialog.ShowAsync();
+                return;
+            }
+
+            var (imported, skipped) = ViewModel.ImportFromCsv(rows);
+
+            var dialog = new ContentDialog
+            {
+                Title = "导入完成",
+                Content = $"导入完成。\n\n成功导入：{imported} 条\n跳过重复：{skipped} 条",
+                CloseButtonText = "确定",
+                XamlRoot = XamlRoot
+            };
+            await dialog.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            var dialog = new ContentDialog
+            {
+                Title = "导入失败",
+                Content = ex.Message,
+                CloseButtonText = "确定",
+                XamlRoot = XamlRoot
+            };
+            await dialog.ShowAsync();
+        }
+    }
+
+    private static System.Collections.Generic.List<(string Pinyin, string Phrase, int CandidateIndex)> ParseCsv(string text)
+    {
+        var result = new System.Collections.Generic.List<(string, string, int)>();
+        using var reader = new StringReader(text);
+        bool firstLine = true;
+        string? line;
+        while ((line = reader.ReadLine()) != null)
+        {
+            if (firstLine)
+            {
+                firstLine = false;
+                if (line.StartsWith("拼音", StringComparison.Ordinal) ||
+                    line.StartsWith("pinyin", StringComparison.OrdinalIgnoreCase))
+                    continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            var cols = SplitCsvLine(line);
+            if (cols.Count < 2) continue;
+
+            var pinyin = cols[0].Trim();
+            var phrase = cols[1].Trim();
+            if (string.IsNullOrEmpty(pinyin) || string.IsNullOrEmpty(phrase)) continue;
+
+            int candidateIndex = 1;
+            if (cols.Count >= 3 && int.TryParse(cols[2].Trim(), out int parsed))
+                candidateIndex = parsed;
+
+            result.Add((pinyin, phrase, candidateIndex));
+        }
+        return result;
+    }
+
+    private static System.Collections.Generic.List<string> SplitCsvLine(string line)
+    {
+        var fields = new System.Collections.Generic.List<string>();
+        var sb = new StringBuilder();
+        bool inQuotes = false;
+        for (int i = 0; i < line.Length; i++)
+        {
+            char c = line[i];
+            if (inQuotes)
+            {
+                if (c == '"')
+                {
+                    if (i + 1 < line.Length && line[i + 1] == '"')
+                    {
+                        sb.Append('"');
+                        i++;
+                    }
+                    else
+                    {
+                        inQuotes = false;
+                    }
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+            }
+            else
+            {
+                if (c == '"')
+                {
+                    inQuotes = true;
+                }
+                else if (c == ',')
+                {
+                    fields.Add(sb.ToString());
+                    sb.Clear();
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+            }
+        }
+        fields.Add(sb.ToString());
+        return fields;
     }
 
     private async void Export_Click(object sender, RoutedEventArgs e)

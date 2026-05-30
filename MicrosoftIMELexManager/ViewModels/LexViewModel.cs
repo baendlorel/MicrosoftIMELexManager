@@ -66,6 +66,37 @@ public partial class LexViewModel : ObservableObject
         IsModified = true;
     }
 
+    public (int imported, int skipped) ImportFromCsv(IEnumerable<(string Pinyin, string Phrase, int CandidateIndex)> rows)
+    {
+        var existing = AllEntries
+            .Select(e => (e.Pinyin.Trim(), e.Phrase.Trim()))
+            .ToHashSet();
+
+        int imported = 0, skipped = 0;
+        foreach (var (pinyin, phrase, candidateIndex) in rows)
+        {
+            var key = (pinyin.Trim(), phrase.Trim());
+            if (existing.Contains(key))
+            {
+                skipped++;
+                continue;
+            }
+
+            AllEntries.Add(new LexEntry
+            {
+                Pinyin = pinyin.Trim(),
+                Phrase = phrase.Trim(),
+                CandidateIndex = candidateIndex,
+            });
+            existing.Add(key);
+            imported++;
+        }
+
+        ApplyFilter();
+        if (imported > 0) IsModified = true;
+        return (imported, skipped);
+    }
+
     [RelayCommand]
     public async Task SaveAsync(string path)
     {
