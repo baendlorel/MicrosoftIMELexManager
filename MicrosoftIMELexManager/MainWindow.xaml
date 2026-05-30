@@ -86,7 +86,7 @@
             </Grid.ColumnDefinitions>
 
             <Border Grid.Row="0">
-                <ListBox x:Name="LibraryListBox"
+                <ListView x:Name="LibraryListBox"
                     SelectionChanged="LibraryListBox_SelectionChanged"
                     DisplayMemberPath="DisplayName"
                     BorderThickness="0"

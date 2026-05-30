@@ -64,7 +64,7 @@
 
                 <Grid Grid.Row="0" Margin="15,12,12,8">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="44"/>
+                        <ColumnDefinition Width="64"/>
                         <ColumnDefinition Width="150"/>
                         <ColumnDefinition Width="300"/>
                         <ColumnDefinition Width="160"/>
@@ -85,7 +85,7 @@
                         <DataTemplate x:DataType="models:LexEntry">
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="44"/>
+                                    <ColumnDefinition Width="64"/>
                                     <ColumnDefinition Width="150"/>
                                     <ColumnDefinition Width="300"/>
                                     <ColumnDefinition Width="160"/>

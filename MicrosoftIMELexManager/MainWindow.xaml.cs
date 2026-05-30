@@ -26,7 +26,7 @@ public sealed partial class MainWindow : Window
     private readonly List<LibraryItem> _libraryItems = new();
 
     private FrameworkElement RootElement => (FrameworkElement)Content;
-    private ListBox LibraryListBoxControl => (ListBox)RootElement.FindName("LibraryListBox");
+    private ListView LibraryListBoxControl => (ListView)RootElement.FindName("LibraryListBox");
     private Border EmptyContentStateControl => (Border)RootElement.FindName("EmptyContentState");
 
     private sealed class LibraryItem

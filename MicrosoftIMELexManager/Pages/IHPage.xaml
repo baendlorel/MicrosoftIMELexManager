@@ -44,7 +44,7 @@
 
                 <Grid Grid.Row="0" Margin="15,12,12,8">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="44"/>
+                        <ColumnDefinition Width="64"/>
                         <ColumnDefinition Width="200"/>
                         <ColumnDefinition Width="100"/>
                         <ColumnDefinition Width="170"/>
@@ -65,14 +65,13 @@
                         <DataTemplate x:DataType="models:IHEntry">
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="44"/>
+                                    <ColumnDefinition Width="64"/>
                                     <ColumnDefinition Width="200"/>
                                     <ColumnDefinition Width="100"/>
                                     <ColumnDefinition Width="170"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="{Binding DisplayIndex}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="4,4,9,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                                 <TextBlock Grid.Column="1" Text="{Binding Word}" VerticalAlignment="Center" Margin="4" IsTextSelectionEnabled="True"/>
-                                <!-- <Slider Grid.Column="2" Value="{Binding Frequency, Mode=TwoWay}" Minimum="1" Maximum="4" TickFrequency="1" SnapsTo="Ticks" Margin="4" VerticalAlignment="Center"/> -->
                                 <TextBlock Grid.Column="2" Text="{Binding Frequency}" VerticalAlignment="Center" Margin="4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                                 <TextBlock Grid.Column="3" Text="{Binding FormattedTimestamp}" VerticalAlignment="Center" Margin="4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                             </Grid>
