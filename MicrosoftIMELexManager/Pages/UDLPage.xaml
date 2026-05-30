@@ -24,10 +24,30 @@
                 Margin="14,0,14,0"
                 BorderThickness="0">
             <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="当前页面仅用于展示自学习词汇内容。"
-                           VerticalAlignment="Center"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                           Margin="0,0,16,0"/>
+                <Button Name="AddNewButton" Click="AddNew_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE710;"/>
+                        <TextBlock Text="新增词条"/>
+                    </StackPanel>
+                </Button>
+                <Button Name="DeleteButton" Click="Delete_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE74D;"/>
+                        <TextBlock Text="删除选中"/>
+                    </StackPanel>
+                </Button>
+                <Button Name="ImportButton" Click="Import_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE8B5;"/>
+                        <TextBlock Text="导入"/>
+                    </StackPanel>
+                </Button>
+                <Button Name="ExportButton" Click="Export_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE8C7;"/>
+                        <TextBlock Text="导出"/>
+                    </StackPanel>
+                </Button>
                 <TextBlock Text="搜索" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                 <TextBox Name="SearchBox" Width="260" Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="按词语或拼音筛选"/>
             </StackPanel>

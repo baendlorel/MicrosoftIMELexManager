@@ -48,8 +48,57 @@ public partial class UDLViewModel : ObservableObject
     [RelayCommand]
     public async Task SaveAsync(string path)
     {
+        var duplicates = AllEntries
+            .Where(e => !_indicesToDelete.Contains(e.RecordIndex))
+            .GroupBy(e => $"{e.Word.Trim()}\t{e.PinyinText.Trim()}")
+            .Where(g => g.Count() > 1)
+            .Select(g => { var first = g.First(); return $"「{first.Word.Trim()}」（{first.PinyinText.Trim()}）"; })
+            .ToList();
+
+        if (duplicates.Count > 0)
+        {
+            throw new InvalidOperationException(
+                "检测到重复词条，请删除后再保存：\n" + string.Join("\n", duplicates));
+        }
+
         await Task.Run(() => _service.Write(_filePath, path, AllEntries.ToList(), _indicesToDelete));
         await LoadAsync(path);
+    }
+
+    /// <summary>
+    /// 从 CSV 导入词条（格式：拼音,词语），跳过与已有词条重复的项，返回跳过数量。
+    /// </summary>
+    public (int imported, int skipped) ImportFromCsv(IEnumerable<(string Pinyin, string Word)> rows)
+    {
+        var existing = AllEntries
+            .Where(e => !_indicesToDelete.Contains(e.RecordIndex))
+            .Select(e => (e.Word.Trim(), e.PinyinText.Trim()))
+            .ToHashSet();
+
+        int imported = 0, skipped = 0;
+        foreach (var (pinyin, word) in rows)
+        {
+            var key = (word.Trim(), pinyin.Trim());
+            if (existing.Contains(key))
+            {
+                skipped++;
+                continue;
+            }
+
+            AllEntries.Insert(0, new UDLEntry
+            {
+                Word = word.Trim(),
+                PinyinText = pinyin.Trim(),
+                Timestamp = 0,
+                RecordIndex = UDLEntry.UnassignedRecordIndex,
+            });
+            existing.Add(key);
+            imported++;
+        }
+
+        ApplyFilter();
+        if (imported > 0) IsModified = true;
+        return (imported, skipped);
     }
 
     [RelayCommand]

@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using MicrosoftIMELexManager.Pages;
 using MicrosoftIMELexManager.Services;
+using Windows.Graphics;
 using Windows.Storage.Pickers;
 
 namespace MicrosoftIMELexManager;
@@ -40,6 +41,9 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+        //AppWindow.Resize(new SizeInt32(800, 780));
         InitializePages();
         Closed += MainWindow_Closed;
     }
@@ -411,7 +415,7 @@ public sealed partial class MainWindow : Window
         CurrentFileText.Text = $"当前路径: {path}";
 
         int lexCount = HasLibrary(LexLibraryKey) ? _lexPage?.ViewModel.AllEntries.Count ?? 0 : 0;
-        int ihCount  = HasLibrary(IHLibraryKey)  ? _ihPage?.ViewModel.AllEntries.Count  ?? 0 : 0;
+        int ihCount = HasLibrary(IHLibraryKey) ? _ihPage?.ViewModel.AllEntries.Count ?? 0 : 0;
         int udlCount = HasLibrary(UDLLibraryKey) ? _udlPage?.ViewModel.AllEntries.Count ?? 0 : 0;
         int totalEntries = lexCount + ihCount + udlCount;
 
@@ -419,7 +423,7 @@ public sealed partial class MainWindow : Window
 
         var details = new System.Text.StringBuilder();
         if (HasLibrary(LexLibraryKey)) details.Append($"自定义短语 {lexCount} 条");
-        if (HasLibrary(IHLibraryKey))  { if (details.Length > 0) details.Append(" · "); details.Append($"输入历史 {ihCount} 条"); }
+        if (HasLibrary(IHLibraryKey)) { if (details.Length > 0) details.Append(" · "); details.Append($"输入历史 {ihCount} 条"); }
         if (HasLibrary(UDLLibraryKey)) { if (details.Length > 0) details.Append(" · "); details.Append($"自学习词汇 {udlCount} 条"); }
         EntryCountDetailText.Text = details.Length > 0 ? $"（{details}）" : string.Empty;
 
