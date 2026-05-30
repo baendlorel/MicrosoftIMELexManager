@@ -34,6 +34,7 @@ public sealed partial class MainWindow : Window
         public required string Key { get; init; }
         public required string DisplayName { get; init; }
         public required string FilePath { get; init; }
+        public int EntryCount { get; init; }
     }
 
     public MainWindow()
@@ -129,17 +130,17 @@ public sealed partial class MainWindow : Window
             if (File.Exists(lexFile) && _lexPage != null)
             {
                 await _lexPage.ViewModel.LoadAsync(lexFile);
-                items.Add(new LibraryItem { Key = LexLibraryKey, DisplayName = "自定义短语", FilePath = lexFile });
+                items.Add(new LibraryItem { Key = LexLibraryKey, DisplayName = "自定义短语", FilePath = lexFile, EntryCount = _lexPage.ViewModel.AllEntries.Count });
             }
             if (File.Exists(ihFile) && _ihPage != null)
             {
                 await _ihPage.ViewModel.LoadAsync(ihFile);
-                items.Add(new LibraryItem { Key = IHLibraryKey, DisplayName = "输入历史", FilePath = ihFile });
+                items.Add(new LibraryItem { Key = IHLibraryKey, DisplayName = "输入历史", FilePath = ihFile, EntryCount = _ihPage.ViewModel.AllEntries.Count });
             }
             if (File.Exists(udlFile) && _udlPage != null)
             {
                 await _udlPage.ViewModel.LoadAsync(udlFile);
-                items.Add(new LibraryItem { Key = UDLLibraryKey, DisplayName = "自学习词汇", FilePath = udlFile });
+                items.Add(new LibraryItem { Key = UDLLibraryKey, DisplayName = "自学习词汇", FilePath = udlFile, EntryCount = _udlPage.ViewModel.AllEntries.Count });
             }
 
             _libraryItems.Clear();

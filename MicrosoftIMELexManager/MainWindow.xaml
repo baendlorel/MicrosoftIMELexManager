@@ -18,69 +18,62 @@
 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0"
-            Margin="36,28,36,10"
+            Margin="36,15,36,20"
             BorderThickness="0">
-            <Grid ColumnSpacing="16" RowSpacing="10">
+            <Grid ColumnSpacing="16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <StackPanel Spacing="4">
-                    <Rectangle Height="80" Width="80"
-                               HorizontalAlignment="Left">
-                        <Rectangle.Fill>
-                            <ImageBrush ImageSource="Assets/字典和放大镜.png"
-                                        Stretch="Uniform" />
-                        </Rectangle.Fill>
-                    </Rectangle>
-                </StackPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                    VerticalAlignment="Center">
-                    <Button Name="OpenFolderButton" Click="OpenFolder_Click"
-                        Style="{StaticResource AccentButtonStyle}">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE8E5;" />
-                            <TextBlock Text="打开文件夹" />
-                        </StackPanel>
-                    </Button>
-                    <Button Name="SaveButton" Click="Save_Click">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE74E;" />
-                            <TextBlock Text="保存" />
-                        </StackPanel>
-                    </Button>
-                    <Button Name="RestoreButton" Click="Restore_Click">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE777;" />
-                            <TextBlock Text="恢复" />
-                        </StackPanel>
-                    </Button>
+                <!-- 图标 -->
+                <Rectangle Height="110" Width="110" VerticalAlignment="Center">
+                    <Rectangle.Fill>
+                        <ImageBrush ImageSource="Assets/字典和放大镜.png" Stretch="Uniform" />
+                    </Rectangle.Fill>
+                </Rectangle>
+
+                <!-- 右侧：按钮 + 路径 + 条目数 -->
+                <StackPanel Grid.Column="1" Margin="20,0,0,0" Spacing="6" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Name="OpenFolderButton" Click="OpenFolder_Click"
+                            Style="{StaticResource AccentButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE8E5;" />
+                                <TextBlock Text="打开文件夹" />
+                            </StackPanel>
+                        </Button>
+                        <Button Name="SaveButton" Click="Save_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE74E;" />
+                                <TextBlock Text="保存" />
+                            </StackPanel>
+                        </Button>
+                        <Button Name="RestoreButton" Click="Restore_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE777;" />
+                                <TextBlock Text="恢复" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                    <TextBlock Name="CurrentFileText" Text="未打开文件"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Name="EntryCountText" Text=""
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBlock Name="EntryCountDetailText" Text=""
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    </StackPanel>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- Status Bar -->
-        <Border Grid.Row="1"
-            Margin="36,10,36,20"
-            BorderThickness="0">
-            <StackPanel Orientation="Horizontal" Spacing="20">
-                <TextBlock Name="CurrentFileText" Text="未打开文件" VerticalAlignment="Center"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                <TextBlock Name="EntryCountText" Text="" VerticalAlignment="Center"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                <TextBlock Name="EntryCountDetailText" Text="" VerticalAlignment="Center"
-                    Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-            </StackPanel>
-        </Border>
-
         <!-- Main Content -->
-        <Grid Grid.Row="2" Padding="36,0,36,12" ColumnSpacing="16">
+        <Grid Grid.Row="1" Padding="36,0,36,12" ColumnSpacing="16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="280" />
                 <ColumnDefinition Width="*" />
@@ -89,9 +82,19 @@
             <Border Grid.Row="0">
                 <ListView x:Name="LibraryListBox"
                     SelectionChanged="LibraryListBox_SelectionChanged"
-                    DisplayMemberPath="DisplayName"
                     BorderThickness="0"
-                    Background="Transparent" />
+                    Background="Transparent">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding EntryCount}" FontSize="12"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
             </Border>
 
             <Border Grid.Column="1"
