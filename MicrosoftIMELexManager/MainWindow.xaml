@@ -27,16 +27,17 @@
             BorderThickness="0">
             <Grid ColumnSpacing="16" RowSpacing="10">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Spacing="4">
-                    <TextBlock Text="微软拼音词库管理器"
-                        Style="{ThemeResource TitleTextBlockStyle}" />
-                    <!--<TextBlock
-                    Text="查看、导出并整理自定义短语、输入历史和自学习词汇。"
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                               TextWrapping="WrapWholeWords"/>-->
+                    <Rectangle Height="80" Width="80"
+                               HorizontalAlignment="Left">
+                        <Rectangle.Fill>
+                            <ImageBrush ImageSource="Assets/字典和放大镜.png"
+                                        Stretch="Uniform" />
+                        </Rectangle.Fill>
+                    </Rectangle>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
