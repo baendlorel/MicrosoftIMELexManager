@@ -22,7 +22,7 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0"
-            Margin="0,0,0,12">
+            Margin="14,0,14,0">
             <StackPanel Orientation="Horizontal" Spacing="8">
                 <Button Name="AddNewButton" Click="AddNew_Click">
                     <StackPanel Orientation="Horizontal" Spacing="8">
@@ -55,10 +55,7 @@
 
         <Border Grid.Row="1"
                 Padding="0"
-                CornerRadius="16"
-                BorderThickness="1"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                BorderThickness="0">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -93,7 +90,7 @@
                                     <ColumnDefinition Width="300"/>
                                     <ColumnDefinition Width="160"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="{Binding DisplayIndex}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="4,4,9,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                <TextBlock Grid.Column="0" Text="{Binding DisplayIndex}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="4,4,9,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                                 <TextBox Grid.Column="1" Text="{Binding Pinyin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4"/>
                                 <TextBox Grid.Column="2" Text="{Binding Phrase, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4"/>
                                 <DropDownButton Grid.Column="3"

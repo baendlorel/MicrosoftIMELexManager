@@ -73,6 +73,8 @@
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 <TextBlock Name="EntryCountText" Text="" VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <TextBlock Name="EntryCountDetailText" Text="" VerticalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
             </StackPanel>
         </Border>
 

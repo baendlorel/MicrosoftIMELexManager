@@ -408,11 +408,21 @@ public sealed partial class MainWindow : Window
     private void UpdateStatus(string path)
     {
         CurrentFileText.Text = $"当前路径: {path}";
-        var totalEntries = (HasLibrary(LexLibraryKey) ? _lexPage?.ViewModel.AllEntries.Count ?? 0 : 0) +
-                           (HasLibrary(IHLibraryKey) ? _ihPage?.ViewModel.AllEntries.Count ?? 0 : 0) +
-                           (HasLibrary(UDLLibraryKey) ? _udlPage?.ViewModel.AllEntries.Count ?? 0 : 0);
+
+        int lexCount = HasLibrary(LexLibraryKey) ? _lexPage?.ViewModel.AllEntries.Count ?? 0 : 0;
+        int ihCount  = HasLibrary(IHLibraryKey)  ? _ihPage?.ViewModel.AllEntries.Count  ?? 0 : 0;
+        int udlCount = HasLibrary(UDLLibraryKey) ? _udlPage?.ViewModel.AllEntries.Count ?? 0 : 0;
+        int totalEntries = lexCount + ihCount + udlCount;
+
         EntryCountText.Text = $"总条目数: {totalEntries}";
-        Log($"状态栏已更新: path={CurrentFileText.Text}, entries={EntryCountText.Text}");
+
+        var details = new System.Text.StringBuilder();
+        if (HasLibrary(LexLibraryKey)) details.Append($"自定义短语 {lexCount} 条");
+        if (HasLibrary(IHLibraryKey))  { if (details.Length > 0) details.Append(" · "); details.Append($"输入历史 {ihCount} 条"); }
+        if (HasLibrary(UDLLibraryKey)) { if (details.Length > 0) details.Append(" · "); details.Append($"自学习词汇 {udlCount} 条"); }
+        EntryCountDetailText.Text = details.Length > 0 ? $"（{details}）" : string.Empty;
+
+        Log($"状态栏已更新: path={CurrentFileText.Text}, entries={EntryCountText.Text}, detail={EntryCountDetailText.Text}");
     }
 
     private static void Log(string message)

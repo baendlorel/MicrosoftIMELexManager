@@ -21,12 +21,8 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0"
-                Margin="0,0,0,12"
-                Padding="14"
-                CornerRadius="14"
-                BorderThickness="1"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                Margin="14,0,14,0"
+                BorderThickness="0">
             <StackPanel Orientation="Horizontal" Spacing="8">
                 <TextBlock Text="当前页面仅用于展示自学习词汇内容。"
                            VerticalAlignment="Center"
@@ -39,10 +35,7 @@
 
         <Border Grid.Row="1"
                 Padding="0"
-                CornerRadius="16"
-                BorderThickness="1"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                BorderThickness="0">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -56,8 +49,8 @@
                         <ColumnDefinition Width="200"/>
                         <ColumnDefinition Width="170"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="1" Text="词语" Margin="8,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                    <TextBlock Grid.Column="2" Text="拼音" Margin="8,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                    <TextBlock Grid.Column="1" Text="拼音" Margin="8,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                    <TextBlock Grid.Column="2" Text="词语" Margin="8,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                     <TextBlock Grid.Column="3" Text="插入时间" Margin="8,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                 </Grid>
 
@@ -77,11 +70,9 @@
                                     <ColumnDefinition Width="200"/>
                                     <ColumnDefinition Width="170"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="{Binding DisplayIndex}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="4,4,9,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                <!-- <TextBox Grid.Column="1" Text="{Binding Word, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4" TextChanged="EditableField_TextChanged" LostFocus="EditableField_LostFocus"/> -->
-                                <TextBlock Grid.Column="1" Text="{Binding Word}" VerticalAlignment="Center" Margin="4" IsTextSelectionEnabled="True"/>
-                                <!-- <TextBox Grid.Column="2" Text="{Binding PinyinText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4" Foreground="Gray" TextChanged="EditableField_TextChanged" LostFocus="EditableField_LostFocus"/> -->
-                                <TextBlock Grid.Column="2" Text="{Binding PinyinText}" VerticalAlignment="Center" Margin="4" Foreground="{ThemeResource TextFillColorSecondaryBrush}" IsTextSelectionEnabled="True"/>
+                                <TextBlock Grid.Column="0" Text="{Binding DisplayIndex}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="4,4,9,4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                <TextBlock Grid.Column="1" Text="{Binding PinyinText}" VerticalAlignment="Center" Margin="4" Foreground="{ThemeResource TextFillColorSecondaryBrush}" IsTextSelectionEnabled="True"/>
+                                <TextBlock Grid.Column="2" Text="{Binding Word}" VerticalAlignment="Center" Margin="4" IsTextSelectionEnabled="True"/>
                                 <TextBlock Grid.Column="3" Text="{Binding FormattedTimestamp}" VerticalAlignment="Center" Margin="4" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                             </Grid>
                         </DataTemplate>
