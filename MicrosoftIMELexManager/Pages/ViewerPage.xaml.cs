@@ -189,9 +189,7 @@ public sealed partial class ViewerPage : Page
 
     private void Log(string message)
     {
-        var formatted = $"[ViewerPage#{GetHashCode()} {DateTime.Now:HH:mm:ss.fff}] {message}";
-        Debug.WriteLine(formatted);
-        Console.WriteLine(formatted);
+        Debug.WriteLine($"[ViewerPage#{GetHashCode()} {DateTime.Now:HH:mm:ss.fff}] {message}");
     }
 
     private static string FormatFileSize(long bytes)

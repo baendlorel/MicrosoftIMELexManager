@@ -65,22 +65,12 @@ public static class BackupService
     /// <returns>如果输入法进程运行则返回 true</returns>
     public static bool IsIMEProcessRunning()
     {
-        var processNames = new[] { "TextInputHost", "ctfmon" };
-
-        foreach (var processName in processNames)
+        return new[] { "TextInputHost", "ctfmon" }.Any(name =>
         {
-            var processes = Process.GetProcessesByName(processName);
-            if (processes.Length > 0)
-            {
-                foreach (var process in processes)
-                {
-                    process.Dispose();
-                }
-                return true;
-            }
-        }
-
-        return false;
+            var processes = Process.GetProcessesByName(name);
+            foreach (var p in processes) p.Dispose();
+            return processes.Length > 0;
+        });
     }
 
     public static (bool Success, string Message) RefreshIME()

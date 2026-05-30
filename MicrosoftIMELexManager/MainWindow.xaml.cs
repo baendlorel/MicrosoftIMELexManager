@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using MicrosoftIMELexManager.Pages;
 using MicrosoftIMELexManager.Services;
-using Windows.Graphics;
 using Windows.Storage.Pickers;
 
 namespace MicrosoftIMELexManager;
@@ -26,10 +26,6 @@ public sealed partial class MainWindow : Window
     private string? _currentFolderPath;
     private readonly List<LibraryItem> _libraryItems = new();
 
-    private FrameworkElement RootElement => (FrameworkElement)Content;
-    private ListView LibraryListBoxControl => (ListView)RootElement.FindName("LibraryListBox");
-    private Border EmptyContentStateControl => (Border)RootElement.FindName("EmptyContentState");
-
     private sealed class LibraryItem
     {
         public required string Key { get; init; }
@@ -43,9 +39,7 @@ public sealed partial class MainWindow : Window
         InitializeComponent();
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
-        //AppWindow.Resize(new SizeInt32(800, 780));
         InitializePages();
-        Closed += MainWindow_Closed;
     }
 
     private void InitializePages()
@@ -129,38 +123,36 @@ public sealed partial class MainWindow : Window
             var lexFile = Path.Combine(path, "ChsPinyinEUDPv1.lex");
             var ihFile = Path.Combine(path, "ChsPinyinIH.dat");
             var udlFile = Path.Combine(path, "ChsPinyinUDL.dat");
-            var items = new List<LibraryItem>();
+            _libraryItems.Clear();
 
             if (File.Exists(lexFile) && _lexPage != null)
             {
                 await _lexPage.ViewModel.LoadAsync(lexFile);
-                items.Add(new LibraryItem { Key = LexLibraryKey, DisplayName = "自定义短语", FilePath = lexFile, EntryCount = _lexPage.ViewModel.AllEntries.Count });
+                _libraryItems.Add(new LibraryItem { Key = LexLibraryKey, DisplayName = "自定义短语", FilePath = lexFile, EntryCount = _lexPage.ViewModel.AllEntries.Count });
             }
             if (File.Exists(ihFile) && _ihPage != null)
             {
                 await _ihPage.ViewModel.LoadAsync(ihFile);
-                items.Add(new LibraryItem { Key = IHLibraryKey, DisplayName = "输入历史", FilePath = ihFile, EntryCount = _ihPage.ViewModel.AllEntries.Count });
+                _libraryItems.Add(new LibraryItem { Key = IHLibraryKey, DisplayName = "输入历史", FilePath = ihFile, EntryCount = _ihPage.ViewModel.AllEntries.Count });
             }
             if (File.Exists(udlFile) && _udlPage != null)
             {
                 await _udlPage.ViewModel.LoadAsync(udlFile);
-                items.Add(new LibraryItem { Key = UDLLibraryKey, DisplayName = "自学习词汇", FilePath = udlFile, EntryCount = _udlPage.ViewModel.AllEntries.Count });
+                _libraryItems.Add(new LibraryItem { Key = UDLLibraryKey, DisplayName = "自学习词汇", FilePath = udlFile, EntryCount = _udlPage.ViewModel.AllEntries.Count });
             }
 
-            _libraryItems.Clear();
-            _libraryItems.AddRange(items);
-            LibraryListBoxControl.ItemsSource = null;
-            LibraryListBoxControl.ItemsSource = _libraryItems;
+            LibraryListBox.ItemsSource = null;
+            LibraryListBox.ItemsSource = _libraryItems;
 
             UpdateStatus(path);
 
             if (_libraryItems.Count > 0)
             {
-                LibraryListBoxControl.SelectedIndex = 0;
+                LibraryListBox.SelectedIndex = 0;
             }
             else
             {
-                LibraryListBoxControl.SelectedItem = null;
+                LibraryListBox.SelectedItem = null;
                 ShowEmptyState();
                 await ShowErrorDialog("未找到词库", "该文件夹下未找到可加载的词库文件。\n\n目前支持：ChsPinyinEUDPv1.lex、ChsPinyinIH.dat、ChsPinyinUDL.dat");
             }
@@ -174,7 +166,7 @@ public sealed partial class MainWindow : Window
 
     private void LibraryListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (LibraryListBoxControl.SelectedItem is LibraryItem item)
+        if (LibraryListBox.SelectedItem is LibraryItem item)
         {
             ShowLibrary(item.Key);
         }
@@ -182,7 +174,7 @@ public sealed partial class MainWindow : Window
 
     private void ShowLibrary(string key)
     {
-        EmptyContentStateControl.Visibility = Visibility.Collapsed;
+        EmptyContentState.Visibility = Visibility.Collapsed;
         LexFrame.Visibility = key == LexLibraryKey ? Visibility.Visible : Visibility.Collapsed;
         IHFrame.Visibility = key == IHLibraryKey ? Visibility.Visible : Visibility.Collapsed;
         UDLFrame.Visibility = key == UDLLibraryKey ? Visibility.Visible : Visibility.Collapsed;
@@ -191,7 +183,7 @@ public sealed partial class MainWindow : Window
 
     private void ShowEmptyState()
     {
-        EmptyContentStateControl.Visibility = Visibility.Visible;
+        EmptyContentState.Visibility = Visibility.Visible;
         LexFrame.Visibility = Visibility.Collapsed;
         IHFrame.Visibility = Visibility.Collapsed;
         UDLFrame.Visibility = Visibility.Collapsed;
@@ -421,7 +413,7 @@ public sealed partial class MainWindow : Window
 
         EntryCountText.Text = $"总条目数: {totalEntries}";
 
-        var details = new System.Text.StringBuilder();
+        var details = new StringBuilder();
         if (HasLibrary(LexLibraryKey)) details.Append($"自定义短语 {lexCount} 条");
         if (HasLibrary(IHLibraryKey)) { if (details.Length > 0) details.Append(" · "); details.Append($"输入历史 {ihCount} 条"); }
         if (HasLibrary(UDLLibraryKey)) { if (details.Length > 0) details.Append(" · "); details.Append($"自学习词汇 {udlCount} 条"); }
@@ -432,9 +424,7 @@ public sealed partial class MainWindow : Window
 
     private static void Log(string message)
     {
-        var formatted = $"[MainWindow {DateTime.Now:HH:mm:ss.fff}] {message}";
-        Debug.WriteLine(formatted);
-        Console.WriteLine(formatted);
+        Debug.WriteLine($"[MainWindow {DateTime.Now:HH:mm:ss.fff}] {message}");
     }
 
     private async Task ShowErrorDialog(string title, string message)
@@ -449,8 +439,4 @@ public sealed partial class MainWindow : Window
         await dialog.ShowAsync();
     }
 
-    private void MainWindow_Closed(object sender, WindowEventArgs args)
-    {
-        // Cleanup if needed
     }
-}
