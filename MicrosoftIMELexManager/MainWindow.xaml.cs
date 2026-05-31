@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
@@ -15,6 +16,12 @@ namespace MicrosoftIMELexManager;
 
 public sealed partial class MainWindow : Window
 {
+    private const uint WmSetIcon = 0x0080;
+    private static readonly IntPtr IconSmall = new(0);
+    private static readonly IntPtr IconBig = new(1);
+    private const uint ImageIcon = 1;
+    private const uint LrLoadFromFile = 0x0010;
+    private const uint LrDefaultSize = 0x0040;
     private const string LexLibraryKey = "Lex";
     private const string IHLibraryKey = "IH";
     private const string UDLLibraryKey = "UDL";
@@ -39,8 +46,53 @@ public sealed partial class MainWindow : Window
         InitializeComponent();
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
-        AppWindow.SetIcon(System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "ime-lexicon-manager.ico"));
+        InitializeWindowIcon();
         InitializePages();
+    }
+
+    private void InitializeWindowIcon()
+    {
+        var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "ime-lexicon-manager.ico");
+        if (!File.Exists(iconPath))
+        {
+            Log($"未找到窗口图标文件: {iconPath}");
+            return;
+        }
+
+        try
+        {
+            AppWindow.SetIcon(iconPath);
+        }
+        catch (Exception ex)
+        {
+            Log($"AppWindow 设置图标失败: {ex}");
+        }
+
+        try
+        {
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            if (hwnd == IntPtr.Zero)
+            {
+                Log("窗口句柄无效，无法设置任务栏图标。");
+                return;
+            }
+
+            var largeIconHandle = LoadImage(IntPtr.Zero, iconPath, ImageIcon, 0, 0, LrLoadFromFile | LrDefaultSize);
+            if (largeIconHandle != IntPtr.Zero)
+            {
+                SendMessage(hwnd, WmSetIcon, IconBig, largeIconHandle);
+            }
+
+            var smallIconHandle = LoadImage(IntPtr.Zero, iconPath, ImageIcon, 16, 16, LrLoadFromFile | LrDefaultSize);
+            if (smallIconHandle != IntPtr.Zero)
+            {
+                SendMessage(hwnd, WmSetIcon, IconSmall, smallIconHandle);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log($"Win32 设置任务栏图标失败: {ex}");
+        }
     }
 
     private void InitializePages()
@@ -427,6 +479,12 @@ public sealed partial class MainWindow : Window
     {
         Debug.WriteLine($"[MainWindow {DateTime.Now:HH:mm:ss.fff}] {message}");
     }
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern IntPtr LoadImage(IntPtr hInst, string lpszName, uint uType, int cxDesired, int cyDesired, uint fuLoad);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
     private async Task ShowErrorDialog(string title, string message)
     {
